@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
 import DisposisiForm from '../components/DisposisiForm.vue';
+import DisposisiRejectForm from '../components/DisposisiRejectForm.vue';
 
 const props = defineProps({
     payload: {
@@ -22,6 +23,7 @@ const error = ref('');
 
 const showForm = ref(false);
 const editingItem = ref(null);
+const rejectingItem = ref(null);
 const autoOpenConsumed = ref(false);
 
 const keteranganLabels = {
@@ -94,18 +96,17 @@ const approveItem = async (item) => {
     }
 };
 
-const rejectItem = async (item) => {
-    const alasan = prompt(`Alasan menolak disposisi "${item.nomor_surat}":`);
-    if (alasan === null) return;
-    if (!alasan.trim()) {
-        error.value = 'Alasan penolakan wajib diisi.';
-        return;
-    }
+const rejectItem = (item) => {
+    rejectingItem.value = item;
+};
+
+const handleReject = async (payload) => {
     try {
-        await axios.patch(`/api/disposisi/${item.id}`, {
+        await axios.patch(`/api/disposisi/${rejectingItem.value.id}`, {
             keterangan: 'ditolak',
-            alasan: alasan.trim(),
+            alasan: payload.alasan,
         });
+        rejectingItem.value = null;
         await fetchItems();
     } catch (err) {
         error.value = 'Gagal menolak disposisi.';
@@ -249,6 +250,13 @@ onMounted(fetchItems);
             :item="editingItem"
             @submit="handleSubmit"
             @close="showForm = false"
+        />
+
+        <DisposisiRejectForm
+            v-if="rejectingItem"
+            :item="rejectingItem"
+            @submit="handleReject"
+            @close="rejectingItem = null"
         />
     </div>
 </template>

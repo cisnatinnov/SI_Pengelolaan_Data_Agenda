@@ -5,11 +5,10 @@ const props = defineProps({
     collapsed: { type: Boolean, default: false },
     active: { type: String, default: 'dashboard' },
     mobile: { type: Boolean, default: false },
-    theme: { type: String, default: 'light' },
     role: { type: String, default: 'staff' },
 });
 
-const emit = defineEmits(['navigate', 'close', 'toggle-theme']);
+const emit = defineEmits(['navigate', 'close']);
 
 const allLinks = [
     { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', roles: ['admin', 'staff', 'asisten_daerah', 'opd'] },
@@ -92,38 +91,6 @@ const icons = {
             </button>
         </nav>
 
-        <div class="p-3 pb-5 border-t border-slate-200/70 dark:border-white/10">
-            <button
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-                :class="
-                    collapsed
-                        ? 'justify-center px-0 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
-                "
-                :title="theme === 'dark' ? 'Pindah ke mode terang' : 'Pindah ke mode gelap'"
-                @click="emit('toggle-theme')"
-            >
-                <svg v-if="theme === 'dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5 shrink-0">
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" stroke-linecap="round" />
-                </svg>
-                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5 shrink-0">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" stroke-linejoin="round" />
-                </svg>
-                <template v-if="!collapsed">
-                    <span class="whitespace-nowrap">{{ theme === 'dark' ? 'Mode Gelap' : 'Mode Terang' }}</span>
-                    <span
-                        class="ml-auto relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                        :class="theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-300'"
-                    >
-                        <span
-                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                            :class="theme === 'dark' ? 'translate-x-6' : 'translate-x-1'"
-                        ></span>
-                    </span>
-                </template>
-            </button>
-        </div>
     </aside>
 
     <transition name="fade">
@@ -168,30 +135,6 @@ const icons = {
                 </button>
             </nav>
 
-            <div class="p-3 pb-6 border-t border-white/10">
-                <button
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/5 transition-all"
-                    @click="emit('toggle-theme')"
-                >
-                    <svg v-if="theme === 'dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5 shrink-0">
-                        <circle cx="12" cy="12" r="4" />
-                        <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" stroke-linecap="round" />
-                    </svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5 shrink-0">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" stroke-linejoin="round" />
-                    </svg>
-                    <span>{{ theme === 'dark' ? 'Mode Gelap' : 'Mode Terang' }}</span>
-                    <span
-                        class="ml-auto relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                        :class="theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-500/40'"
-                    >
-                        <span
-                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                            :class="theme === 'dark' ? 'translate-x-6' : 'translate-x-1'"
-                        ></span>
-                    </span>
-                </button>
-            </div>
         </aside>
     </transition>
 </template>

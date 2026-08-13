@@ -21,7 +21,6 @@ class KegiatanController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
-        $data = $this->normalizePenyusun($data);
 
         $kegiatan = Kegiatan::create($data);
 
@@ -42,7 +41,6 @@ class KegiatanController extends Controller
     public function update(Request $request, Kegiatan $kegiatan)
     {
         $data = $this->validateData($request);
-        $data = $this->normalizePenyusun($data);
 
         $kegiatan->update($data);
 
@@ -74,24 +72,7 @@ class KegiatanController extends Controller
             'realisasi_pelaksanaan' => ['required', 'string', 'in:terlaksana,tidak'],
             'keterangan' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', 'string', 'in:pelaksanaan,laporan'],
-            'nama_penyusun' => ['nullable', 'string', 'max:255', 'required_if:status,laporan'],
-            'tanda_tangan_penyusun' => ['nullable', 'string', 'max:255', 'required_if:status,laporan'],
+            'nama_penyusun' => ['nullable', 'string', 'max:255'],
         ]);
-    }
-
-    /**
-     * Penyusun fields only apply to the laporan status.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    private function normalizePenyusun(array $data): array
-    {
-        if ($data['status'] !== 'laporan') {
-            $data['nama_penyusun'] = null;
-            $data['tanda_tangan_penyusun'] = null;
-        }
-
-        return $data;
     }
 }

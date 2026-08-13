@@ -20,7 +20,6 @@ const form = reactive({
     keterangan: '',
     status: 'pelaksanaan',
     nama_penyusun: '',
-    tanda_tangan_penyusun: '',
 });
 
 if (props.item) {
@@ -32,15 +31,13 @@ if (props.item) {
     form.keterangan = props.item.keterangan ?? '';
     form.status = props.item.status ?? 'pelaksanaan';
     form.nama_penyusun = props.item.nama_penyusun ?? '';
-    form.tanda_tangan_penyusun = props.item.tanda_tangan_penyusun ?? '';
 }
 
 watch(
-    () => form.status,
-    (status) => {
-        if (status !== 'laporan') {
-            form.nama_penyusun = '';
-            form.tanda_tangan_penyusun = '';
+    () => form.realisasi_pelaksanaan,
+    (value) => {
+        if (value === 'tidak') {
+            form.status = 'laporan';
         }
     }
 );
@@ -50,12 +47,6 @@ const { errors, validateAll, onInput, fieldClass } = useFormValidation({
     tempat_kegiatan: () => (form.tempat_kegiatan.trim() ? null : 'Tempat kegiatan wajib diisi.'),
     tanggal_kegiatan: () => (form.tanggal_kegiatan ? null : 'Tanggal kegiatan wajib diisi.'),
     uraian_kegiatan: () => (form.uraian_kegiatan.trim() ? null : 'Uraian kegiatan wajib diisi.'),
-    nama_penyusun: () =>
-        form.status === 'laporan' && !form.nama_penyusun.trim() ? 'Nama penyusun wajib diisi.' : null,
-    tanda_tangan_penyusun: () =>
-        form.status === 'laporan' && !form.tanda_tangan_penyusun.trim()
-            ? 'Tanda tangan penyusun wajib diisi.'
-            : null,
 });
 
 function submitForm() {
@@ -145,7 +136,7 @@ const fields = [
                             class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
                         >
                             <option value="terlaksana">Terlaksana</option>
-                            <option value="tidak">Tidak</option>
+                            <option value="tidak">Tidak Terlaksana</option>
                         </select>
                     </div>
 
@@ -181,46 +172,20 @@ const fields = [
                         ></textarea>
                     </div>
 
-                    <template v-if="form.status === 'laporan'">
-                        <div class="sm:col-span-1">
-                            <label
-                                for="nama_penyusun"
-                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                            >
-                                Nama Penyusun
-                            </label>
-                            <input
-                                id="nama_penyusun"
-                                v-model="form.nama_penyusun"
-                                type="text"
-                                required
-                                @input="onInput('nama_penyusun')"
-                                :class="fieldClass('nama_penyusun')"
-                            />
-                            <p v-if="errors.nama_penyusun" class="mt-1 text-xs text-red-500">
-                                {{ errors.nama_penyusun }}
-                            </p>
-                        </div>
-                        <div class="sm:col-span-1">
-                            <label
-                                for="tanda_tangan_penyusun"
-                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                            >
-                                Tanda Tangan Penyusun
-                            </label>
-                            <input
-                                id="tanda_tangan_penyusun"
-                                v-model="form.tanda_tangan_penyusun"
-                                type="text"
-                                required
-                                @input="onInput('tanda_tangan_penyusun')"
-                                :class="fieldClass('tanda_tangan_penyusun')"
-                            />
-                            <p v-if="errors.tanda_tangan_penyusun" class="mt-1 text-xs text-red-500">
-                                {{ errors.tanda_tangan_penyusun }}
-                            </p>
-                        </div>
-                    </template>
+                    <div class="sm:col-span-2">
+                        <label
+                            for="nama_penyusun"
+                            class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                        >
+                            Nama Penyusun
+                        </label>
+                        <input
+                            id="nama_penyusun"
+                            v-model="form.nama_penyusun"
+                            type="text"
+                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                        />
+                    </div>
                 </div>
 
                 <div class="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">

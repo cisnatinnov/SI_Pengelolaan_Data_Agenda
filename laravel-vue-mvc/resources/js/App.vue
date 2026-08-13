@@ -9,9 +9,6 @@ import Surat from './views/Surat.vue';
 import Kegiatan from './views/Kegiatan.vue';
 import Pengguna from './views/Pengguna.vue';
 import Pengingat from './views/Pengingat.vue';
-import { useTheme } from './composables/useTheme';
-
-const { theme, toggleTheme } = useTheme();
 
 const user = window.Laravel?.user ?? null;
 
@@ -90,12 +87,10 @@ const toggleSidebar = () => {
 
         <AppHeader
             :active="activeView"
-            :theme="theme"
             :sidebar-collapsed="sidebarCollapsed"
             :user="user"
             @navigate="navigate"
             @toggle-sidebar="toggleSidebar"
-            @toggle-theme="toggleTheme"
             @logout="logout"
         />
 
@@ -103,22 +98,18 @@ const toggleSidebar = () => {
             <AppSidebar
                 :collapsed="sidebarCollapsed"
                 :active="activeView"
-                :theme="theme"
                 :role="user?.role_slug ?? 'staff'"
                 @navigate="navigate"
-                @toggle-theme="toggleTheme"
             />
 
             <AppSidebar
                 v-if="mobileSidebarOpen"
                 :collapsed="false"
                 :active="activeView"
-                :theme="theme"
                 :role="user?.role_slug ?? 'staff'"
                 mobile
                 @navigate="navigate"
                 @close="mobileSidebarOpen = false"
-                @toggle-theme="toggleTheme"
             />
 
             <main class="flex-1 min-w-0">

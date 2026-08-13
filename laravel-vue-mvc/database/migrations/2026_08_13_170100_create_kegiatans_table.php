@@ -21,7 +21,6 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
             $table->string('status'); // pelaksanaan | laporan
             $table->string('nama_penyusun')->nullable();
-            $table->string('tanda_tangan_penyusun')->nullable();
             $table->timestamps();
         });
     }

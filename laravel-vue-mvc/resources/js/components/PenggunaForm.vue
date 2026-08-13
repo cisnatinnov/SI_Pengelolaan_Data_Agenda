@@ -64,6 +64,12 @@ const strength = computed(() => {
     return { label: 'Kuat', class: 'bg-emerald-500', text: 'text-emerald-500' };
 });
 
+const showPassword = ref(false);
+
+const missingRules = computed(() =>
+    passwordRules.filter((rule) => !rule.check(form.password))
+);
+
 const { errors, validateAll, onInput, fieldClass } = useFormValidation({
     name: () => (form.name.trim() ? null : 'Nama wajib diisi.'),
     email: () => {
@@ -177,16 +183,48 @@ function submitForm() {
                             Password
                             <span v-if="item" class="text-xs text-slate-400 font-normal">(kosongkan jika tidak diubah)</span>
                         </label>
-                        <input
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            :required="!item"
-                            minlength="8"
-                            autocomplete="new-password"
-                            @input="onInput('password')"
-                            :class="fieldClass('password')"
-                        />
+                        <div class="relative">
+                            <input
+                                id="password"
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                :required="!item"
+                                minlength="8"
+                                autocomplete="new-password"
+                                @input="onInput('password')"
+                                :class="fieldClass('password')"
+                            />
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                                :title="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                                @click="showPassword = !showPassword"
+                            >
+                                <svg
+                                    v-if="showPassword"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    class="w-5 h-5"
+                                >
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M1 1l22 22" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <svg
+                                    v-else
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    class="w-5 h-5"
+                                >
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-linecap="round" stroke-linejoin="round" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
                         <p v-if="errors.password" class="mt-1 text-xs text-red-500">
                             {{ errors.password }}
                         </p>
@@ -207,12 +245,18 @@ function submitForm() {
                                     v-for="rule in passwordRules"
                                     :key="rule.label"
                                     class="flex items-center gap-2 text-xs"
-                                    :class="rule.check(form.password) ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'"
+                                    :class="rule.check(form.password) ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'"
                                 >
                                     <span>{{ rule.check(form.password) ? '✓' : '○' }}</span>
                                     {{ rule.label }}
                                 </li>
                             </ul>
+                            <p
+                                v-if="missingRules.length > 0"
+                                class="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400"
+                            >
+                                Masih kurang: {{ missingRules.map((rule) => rule.label).join(', ') }}
+                            </p>
                         </template>
                     </div>
                 </div>

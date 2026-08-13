@@ -1,12 +1,11 @@
 <script setup>
 defineProps({
     active: { type: String, default: 'dashboard' },
-    theme: { type: String, default: 'light' },
     sidebarCollapsed: { type: Boolean, default: false },
     user: { type: Object, default: null },
 });
 
-defineEmits(['navigate', 'toggle-sidebar', 'toggle-theme', 'logout']);
+defineEmits(['navigate', 'toggle-sidebar', 'logout']);
 </script>
 
 <template>
@@ -55,19 +54,6 @@ defineEmits(['navigate', 'toggle-sidebar', 'toggle-theme', 'logout']);
                 <span v-if="user" class="hidden sm:block text-sm text-slate-600 dark:text-slate-300">
                     {{ user.name }}
                 </span>
-                <button
-                    class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
-                    @click="$emit('toggle-theme')"
-                    :aria-label="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-                >
-                    <svg v-if="theme === 'dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5">
-                        <circle cx="12" cy="12" r="4" />
-                        <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" stroke-linecap="round" />
-                    </svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" stroke-linejoin="round" />
-                    </svg>
-                </button>
                 <button
                     class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-100/60 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                     @click="$emit('logout')"

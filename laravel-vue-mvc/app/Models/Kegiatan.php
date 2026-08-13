@@ -15,7 +15,6 @@ class Kegiatan extends Model
         'keterangan',
         'status',
         'nama_penyusun',
-        'tanda_tangan_penyusun',
     ];
 
     protected function casts(): array

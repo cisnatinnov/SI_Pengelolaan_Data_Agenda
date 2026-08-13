@@ -22,7 +22,7 @@ const editingItem = ref(null);
 
 const realisasiLabels = {
     terlaksana: { text: 'Terlaksana', class: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
-    tidak: { text: 'Tidak', class: 'bg-red-500/15 text-red-700 dark:text-red-300' },
+    tidak: { text: 'Tidak Terlaksana', class: 'bg-red-500/15 text-red-700 dark:text-red-300' },
 };
 
 const statusLabels = {
@@ -175,11 +175,7 @@ onMounted(fetchItems);
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <template v-if="item.status === 'laporan'">
-                                    <p>{{ item.nama_penyusun ?? '-' }}</p>
-                                    <p class="text-xs text-slate-400 dark:text-slate-500">TTD: {{ item.tanda_tangan_penyusun ?? '-' }}</p>
-                                </template>
-                                <template v-else>-</template>
+                                {{ item.nama_penyusun ?? '-' }}
                             </td>
                             <td v-if="canManage" class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <button
