@@ -12,6 +12,10 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate']);
 
+const user = window.Laravel?.user ?? null;
+const isStaff = user?.role_slug === 'staff';
+const isAsistenDaerah = user?.role_slug === 'asisten_daerah';
+
 const items = ref([]);
 const loading = ref(false);
 const error = ref('');
@@ -77,6 +81,34 @@ const removeItem = async (item) => {
         await fetchItems();
     } catch (err) {
         error.value = 'Gagal menghapus disposisi.';
+    }
+};
+
+const approveItem = async (item) => {
+    if (!confirm(`Sahkan disposisi "${item.nomor_surat}"?`)) return;
+    try {
+        await axios.patch(`/api/disposisi/${item.id}`, { keterangan: 'disahkan' });
+        await fetchItems();
+    } catch (err) {
+        error.value = 'Gagal mengesahkan disposisi.';
+    }
+};
+
+const rejectItem = async (item) => {
+    const alasan = prompt(`Alasan menolak disposisi "${item.nomor_surat}":`);
+    if (alasan === null) return;
+    if (!alasan.trim()) {
+        error.value = 'Alasan penolakan wajib diisi.';
+        return;
+    }
+    try {
+        await axios.patch(`/api/disposisi/${item.id}`, {
+            keterangan: 'ditolak',
+            alasan: alasan.trim(),
+        });
+        await fetchItems();
+    } catch (err) {
+        error.value = 'Gagal menolak disposisi.';
     }
 };
 
@@ -177,18 +209,34 @@ onMounted(fetchItems);
                                 </p>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <button
-                                    @click="openEdit(item)"
-                                    class="text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mr-3"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    @click="removeItem(item)"
-                                    class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                                >
-                                    Hapus
-                                </button>
+                                <template v-if="isStaff">
+                                    <button
+                                        @click="openEdit(item)"
+                                        class="text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mr-3"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        @click="removeItem(item)"
+                                        class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                                    >
+                                        Hapus
+                                    </button>
+                                </template>
+                                <template v-else-if="isAsistenDaerah">
+                                    <button
+                                        @click="approveItem(item)"
+                                        class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mr-3"
+                                    >
+                                        Mengesahkan
+                                    </button>
+                                    <button
+                                        @click="rejectItem(item)"
+                                        class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                                    >
+                                        Menolak
+                                    </button>
+                                </template>
                             </td>
                         </tr>
                     </tbody>

@@ -55,7 +55,7 @@ const viewRoles = {
     dashboard: ['admin', 'staff', 'asisten_daerah', 'opd'],
     kegiatan: ['admin', 'staff', 'asisten_daerah', 'opd'],
     surat: ['staff'],
-    disposisi: ['staff'],
+    disposisi: ['staff', 'asisten_daerah'],
     pengguna: ['admin'],
     pengingat: ['staff', 'asisten_daerah', 'opd'],
 };

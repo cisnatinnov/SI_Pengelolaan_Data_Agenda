@@ -45,7 +45,7 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 | Kegiatan — lihat | ✅ | ✅ | ✅ | ✅ |
 | Kegiatan — tambah/edit/hapus | ❌ | ✅ | ❌ | ❌ |
 | Surat | ❌ | ✅ | ❌ | ❌ |
-| Disposisi | ❌ | ✅ | ❌ | ❌ |
+| Disposisi | ❌ | ✅ | ✅ | ❌ |
 | Pengingat | ❌ | ✅ | ✅ | ✅ |
 | Pengguna (kelola akun) | ✅ | ❌ | ❌ | ❌ |
 
@@ -75,6 +75,10 @@ Data disposisi yang otomatis dibuat dari Surat. Dapat diedit untuk mengisi **Pen
 - **Ditolak**: wajib mengisi **Alasan Ditolak**
 
 Gunakan tombol **Disposisi** pada baris data Surat untuk melompat ke disposisi terkait.
+
+Hak akses Disposisi:
+- **Staff**: dapat mengedit seluruh data disposisi (termasuk keterangan, Penerima, Dituju) dan menghapus.
+- **Asisten Daerah**: dapat melihat disposisi serta **mengesahkan** (disahkan) atau **menolak** (ditolak, wajib alasan) surat. Tidak dapat mengubah data surat lain atau menghapus.
 
 ### Pengingat (Staff, Asisten Daerah, OPD)
 Kelola pengingat pribadi. Setiap pengguna hanya melihat pengingat miliknya sendiri. Kolom:

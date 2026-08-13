@@ -34,6 +34,27 @@ class DisposisiController extends Controller
      */
     public function update(Request $request, Disposisi $disposisi)
     {
+        $user = $request->user();
+
+        // Asisten Daerah can only sahkan (approve) or tolak (reject) the letter.
+        if ($user->role_slug === 'asisten_daerah') {
+            $data = $request->validate([
+                'keterangan' => ['required', 'string', 'in:disahkan,ditolak'],
+                'alasan' => ['nullable', 'string', 'max:1000', 'required_if:keterangan,ditolak'],
+            ]);
+
+            $disposisi->update([
+                'keterangan' => $data['keterangan'],
+                'alasan' => $data['keterangan'] === 'ditolak' ? $data['alasan'] : null,
+            ]);
+
+            return $disposisi;
+        }
+
+        if ($user->role_slug !== 'staff') {
+            abort(403, 'Anda tidak memiliki akses.');
+        }
+
         $data = $this->validateData($request);
 
         // Alasan only applies to rejected letters.
@@ -49,8 +70,12 @@ class DisposisiController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Disposisi $disposisi)
+    public function destroy(Request $request, Disposisi $disposisi)
     {
+        if ($request->user()->role_slug !== 'staff') {
+            abort(403, 'Anda tidak memiliki akses.');
+        }
+
         $disposisi->delete();
 
         return response()->json(null, 204);
