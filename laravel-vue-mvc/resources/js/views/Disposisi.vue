@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
-import SuratKegiatanForm from '../components/SuratKegiatanForm.vue';
+import DisposisiForm from '../components/DisposisiForm.vue';
 
 const props = defineProps({
     payload: {
@@ -38,10 +38,10 @@ const fetchItems = async () => {
     loading.value = true;
     error.value = '';
     try {
-        const params = props.payload?.surat_undangan_id
-            ? { surat_undangan_id: props.payload.surat_undangan_id }
+        const params = props.payload?.surat_id
+            ? { surat_id: props.payload.surat_id }
             : {};
-        const { data } = await axios.get('/api/surat-kegiatan', { params });
+        const { data } = await axios.get('/api/disposisi', { params });
         items.value = data;
 
         if (props.payload?.openForm && !autoOpenConsumed.value && items.value.length > 0) {
@@ -62,7 +62,7 @@ const openEdit = (item) => {
 
 const handleSubmit = async (payload) => {
     try {
-        await axios.put(`/api/surat-kegiatan/${editingItem.value.id}`, payload);
+        await axios.put(`/api/disposisi/${editingItem.value.id}`, payload);
         showForm.value = false;
         await fetchItems();
     } catch (err) {
@@ -73,7 +73,7 @@ const handleSubmit = async (payload) => {
 const removeItem = async (item) => {
     if (!confirm(`Hapus disposisi "${item.nomor_surat}"?`)) return;
     try {
-        await axios.delete(`/api/surat-kegiatan/${item.id}`);
+        await axios.delete(`/api/disposisi/${item.id}`);
         await fetchItems();
     } catch (err) {
         error.value = 'Gagal menghapus disposisi.';
@@ -98,9 +98,9 @@ onMounted(fetchItems);
                 <div class="flex items-center gap-3">
                     <h2 class="text-2xl font-display font-bold gradient-brand-text">Disposisi</h2>
                     <button
-                        v-if="payload?.surat_undangan_id"
+                        v-if="payload?.surat_id"
                         class="px-3 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 rounded-full hover:bg-indigo-500/20 transition-colors"
-                        @click="emit('navigate', 'surat-kegiatan')"
+                        @click="emit('navigate', 'disposisi')"
                     >
                         Lihat Semua
                     </button>
@@ -196,7 +196,7 @@ onMounted(fetchItems);
             </div>
         </div>
 
-        <SuratKegiatanForm
+        <DisposisiForm
             v-if="showForm"
             :item="editingItem"
             @submit="handleSubmit"

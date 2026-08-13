@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SuratKegiatan;
+use App\Models\Disposisi;
 use Illuminate\Http\Request;
 
-class SuratKegiatanController extends Controller
+class DisposisiController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = SuratKegiatan::with('suratUndangan');
+        $query = Disposisi::with('surat');
 
-        if ($request->filled('surat_undangan_id')) {
-            $query->where('surat_undangan_id', $request->integer('surat_undangan_id'));
+        if ($request->filled('surat_id')) {
+            $query->where('surat_id', $request->integer('surat_id'));
         }
 
         return $query->orderByDesc('created_at')->get();
@@ -24,15 +24,15 @@ class SuratKegiatanController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SuratKegiatan $suratKegiatan)
+    public function show(Disposisi $disposisi)
     {
-        return $suratKegiatan->load('suratUndangan');
+        return $disposisi->load('surat');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, SuratKegiatan $suratKegiatan)
+    public function update(Request $request, Disposisi $disposisi)
     {
         $data = $this->validateData($request);
 
@@ -41,17 +41,17 @@ class SuratKegiatanController extends Controller
             $data['alasan'] = null;
         }
 
-        $suratKegiatan->update($data);
+        $disposisi->update($data);
 
-        return $suratKegiatan;
+        return $disposisi;
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SuratKegiatan $suratKegiatan)
+    public function destroy(Disposisi $disposisi)
     {
-        $suratKegiatan->delete();
+        $disposisi->delete();
 
         return response()->json(null, 204);
     }

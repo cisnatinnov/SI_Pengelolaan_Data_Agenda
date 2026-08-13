@@ -18,7 +18,7 @@ const fetchStats = async () => {
     loading.value = true;
     error.value = '';
     try {
-        const { data } = await axios.get('/api/surat-kegiatan');
+        const { data } = await axios.get('/api/disposisi');
         const diterima = data.filter((item) => item.keterangan === 'diterima').length;
         const ditolak = data.filter((item) => item.keterangan === 'ditolak').length;
         const disahkan = data.filter((item) => item.keterangan === 'disahkan').length;

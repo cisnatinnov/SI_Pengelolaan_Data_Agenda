@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Disposisi;
 use App\Models\Kegiatan;
-use App\Models\KendaliSuratMasuk;
+use App\Models\Pengingat;
 use App\Models\Role;
-use App\Models\SuratKegiatan;
-use App\Models\SuratUndangan;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -25,9 +25,9 @@ class DatabaseSeeder extends Seeder
     {
         // Empty all tables.
         Schema::disableForeignKeyConstraints();
-        SuratKegiatan::truncate();
-        SuratUndangan::truncate();
-        KendaliSuratMasuk::truncate();
+        Disposisi::truncate();
+        Surat::truncate();
+        Pengingat::truncate();
         Kegiatan::truncate();
         User::truncate();
         Role::truncate();

@@ -4,17 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class KendaliSuratMasuk extends Model
+class Pengingat extends Model
 {
     use HasFactory;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'kendali_surat_masuk';
 
     /**
      * The attributes that are mass assignable.
@@ -22,9 +16,12 @@ class KendaliSuratMasuk extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'tanggal_surat',
-        'perihal',
-        'keterangan',
+        'user_id',
+        'judul',
+        'deskripsi',
+        'tanggal_pengingat',
+        'prioritas',
+        'status',
     ];
 
     /**
@@ -35,7 +32,15 @@ class KendaliSuratMasuk extends Model
     protected function casts(): array
     {
         return [
-            'tanggal_surat' => 'datetime',
+            'tanggal_pengingat' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user that owns the pengingat.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

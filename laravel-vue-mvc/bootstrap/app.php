@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'not-role' => \App\Http\Middleware\EnsureRoleIsNot::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

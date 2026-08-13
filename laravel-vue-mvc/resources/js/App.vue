@@ -4,10 +4,11 @@ import AppHeader from './components/AppHeader.vue';
 import AppFooter from './components/AppFooter.vue';
 import AppSidebar from './components/AppSidebar.vue';
 import Dashboard from './views/Dashboard.vue';
-import SuratKegiatan from './views/SuratKegiatan.vue';
-import SuratUndangan from './views/SuratUndangan.vue';
+import Disposisi from './views/Disposisi.vue';
+import Surat from './views/Surat.vue';
 import Kegiatan from './views/Kegiatan.vue';
 import Pengguna from './views/Pengguna.vue';
+import Pengingat from './views/Pengingat.vue';
 import { useTheme } from './composables/useTheme';
 
 const { theme, toggleTheme } = useTheme();
@@ -36,10 +37,11 @@ const mobileSidebarOpen = ref(false);
 
 const views = {
     dashboard: Dashboard,
-    'surat-kegiatan': SuratKegiatan,
-    'surat-undangan': SuratUndangan,
+    disposisi: Disposisi,
+    surat: Surat,
     kegiatan: Kegiatan,
     pengguna: Pengguna,
+    pengingat: Pengingat,
 };
 
 const navigate = (key, payload = null) => {
@@ -52,9 +54,10 @@ const navigate = (key, payload = null) => {
 const viewRoles = {
     dashboard: ['admin', 'staff', 'asisten_daerah', 'opd'],
     kegiatan: ['admin', 'staff', 'asisten_daerah', 'opd'],
-    'surat-undangan': ['staff'],
-    'surat-kegiatan': ['staff'],
+    surat: ['staff'],
+    disposisi: ['staff'],
     pengguna: ['admin'],
+    pengingat: ['staff', 'asisten_daerah', 'opd'],
 };
 
 const currentView = computed(() =>

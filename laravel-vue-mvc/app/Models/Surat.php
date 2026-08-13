@@ -4,10 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class SuratUndangan extends Model
+class Surat extends Model
 {
     use HasFactory;
+
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'surat';
 
     /**
      * The attributes that are mass assignable.
@@ -37,5 +45,13 @@ class SuratUndangan extends Model
             'tanggal' => 'datetime',
             'tanggal_pelaksanaan' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the disposisi records linked to this surat.
+     */
+    public function disposisis(): HasMany
+    {
+        return $this->hasMany(Disposisi::class);
     }
 }

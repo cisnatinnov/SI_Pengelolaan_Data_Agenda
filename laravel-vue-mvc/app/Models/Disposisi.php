@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SuratKegiatan extends Model
+class Disposisi extends Model
 {
     use HasFactory;
 
@@ -14,7 +15,7 @@ class SuratKegiatan extends Model
      *
      * @var string
      */
-    protected $table = 'surat_kegiatan';
+    protected $table = 'disposisi';
 
     /**
      * The attributes that are mass assignable.
@@ -22,7 +23,7 @@ class SuratKegiatan extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'surat_undangan_id',
+        'surat_id',
         'tanggal',
         'nomor_surat',
         'asal_surat',
@@ -36,11 +37,11 @@ class SuratKegiatan extends Model
     ];
 
     /**
-     * Get the surat undangan that generated this surat kegiatan.
+     * Get the surat that generated this disposisi.
      */
-    public function suratUndangan()
+    public function surat(): BelongsTo
     {
-        return $this->belongsTo(SuratUndangan::class);
+        return $this->belongsTo(Surat::class);
     }
 
     /**

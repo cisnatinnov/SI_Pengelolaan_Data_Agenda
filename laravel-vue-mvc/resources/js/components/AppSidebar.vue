@@ -14,8 +14,9 @@ const emit = defineEmits(['navigate', 'close', 'toggle-theme']);
 const allLinks = [
     { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', roles: ['admin', 'staff', 'asisten_daerah', 'opd'] },
     { key: 'kegiatan', label: 'Kegiatan', icon: 'kegiatan', roles: ['admin', 'staff', 'asisten_daerah', 'opd'] },
-    { key: 'surat-undangan', label: 'Surat', icon: 'surat-undangan', roles: ['staff'] },
-    { key: 'surat-kegiatan', label: 'Disposisi', icon: 'surat-kegiatan', roles: ['staff'] },
+    { key: 'surat', label: 'Surat', icon: 'surat', roles: ['staff'] },
+    { key: 'disposisi', label: 'Disposisi', icon: 'disposisi', roles: ['staff'] },
+    { key: 'pengingat', label: 'Pengingat', icon: 'pengingat', roles: ['staff', 'asisten_daerah', 'opd'] },
     { key: 'pengguna', label: 'Pengguna', icon: 'pengguna', roles: ['admin'] },
 ];
 
@@ -36,18 +37,24 @@ const icons = {
             <rect x="3" y="5" width="18" height="16" rx="2"/>
             <path d="M8 3v4M16 3v4M3 10h18" stroke-linecap="round"/>
         </svg>`,
-    'surat-kegiatan': `
+    'disposisi': `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
             class="w-5 h-5 shrink-0">
             <path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
             <path d="M14 3v5h5"/>
             <path d="M9 13h6M9 17h6"/>
         </svg>`,
-    'surat-undangan': `
+    'surat': `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
             class="w-5 h-5 shrink-0">
             <path d="M4 4h16v16H4z" rx="2"/>
             <path d="M8 9h8M8 13h8M8 17h5" stroke-linecap="round"/>
+        </svg>`,
+    'pengingat': `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            class="w-5 h-5 shrink-0">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3 3" stroke-linecap="round"/>
         </svg>`,
     pengguna: `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"

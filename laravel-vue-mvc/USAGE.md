@@ -46,6 +46,7 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 | Kegiatan — tambah/edit/hapus | ❌ | ✅ | ❌ | ❌ |
 | Surat | ❌ | ✅ | ❌ | ❌ |
 | Disposisi | ❌ | ✅ | ❌ | ❌ |
+| Pengingat | ❌ | ✅ | ✅ | ✅ |
 | Pengguna (kelola akun) | ✅ | ❌ | ❌ | ❌ |
 
 ## Menu
@@ -74,6 +75,13 @@ Data disposisi yang otomatis dibuat dari Surat. Dapat diedit untuk mengisi **Pen
 - **Ditolak**: wajib mengisi **Alasan Ditolak**
 
 Gunakan tombol **Disposisi** pada baris data Surat untuk melompat ke disposisi terkait.
+
+### Pengingat (Staff, Asisten Daerah, OPD)
+Kelola pengingat pribadi. Setiap pengguna hanya melihat pengingat miliknya sendiri. Kolom:
+- **Judul** (wajib) dan **Deskripsi** (opsional)
+- **Tanggal Pengingat** (wajib)
+- **Prioritas**: `Rendah` / `Sedang` / `Tinggi`
+- **Status**: `Pending` / `Selesai`
 
 ### Pengguna (Admin)
 Kelola akun pengguna: tambah, edit (nama, email, role, password), dan hapus. Akun sendiri tidak dapat dihapus.

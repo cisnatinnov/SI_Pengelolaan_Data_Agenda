@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import SuratUndanganForm from '../components/SuratUndanganForm.vue';
+import SuratForm from '../components/SuratForm.vue';
 
 const emit = defineEmits(['navigate']);
 
@@ -19,8 +19,8 @@ const error = ref('');
 const showForm = ref(false);
 const editingItem = ref(null);
 
-const openSuratKegiatan = (item) => {
-    emit('navigate', 'surat-kegiatan', { surat_undangan_id: item.id });
+const openDisposisi = (item) => {
+    emit('navigate', 'disposisi', { surat_id: item.id });
 };
 
 const formatTanggal = (value) => {
@@ -35,7 +35,7 @@ const fetchItems = async () => {
     loading.value = true;
     error.value = '';
     try {
-        const { data } = await axios.get('/api/surat-undangan');
+        const { data } = await axios.get('/api/surat');
         items.value = data;
     } catch (err) {
         error.value = 'Gagal memuat data surat.';
@@ -57,14 +57,14 @@ const openEdit = (item) => {
 const handleSubmit = async (payload) => {
     try {
         if (editingItem.value) {
-            await axios.put(`/api/surat-undangan/${editingItem.value.id}`, payload);
+            await axios.put(`/api/surat/${editingItem.value.id}`, payload);
             showForm.value = false;
             await fetchItems();
         } else {
-            const { data } = await axios.post('/api/surat-undangan', payload);
+            const { data } = await axios.post('/api/surat', payload);
             showForm.value = false;
-            emit('navigate', 'surat-kegiatan', {
-                surat_undangan_id: data.id,
+            emit('navigate', 'disposisi', {
+                surat_id: data.id,
                 openForm: true,
             });
         }
@@ -76,7 +76,7 @@ const handleSubmit = async (payload) => {
 const removeItem = async (item) => {
     if (!confirm(`Hapus surat "${item.nomor_surat}"?`)) return;
     try {
-        await axios.delete(`/api/surat-undangan/${item.id}`);
+        await axios.delete(`/api/surat/${item.id}`);
         await fetchItems();
     } catch (err) {
         error.value = 'Gagal menghapus surat.';
@@ -157,7 +157,7 @@ onMounted(fetchItems);
                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ item.tandatangan ?? '-' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <button
-                                    @click="openSuratKegiatan(item)"
+                                    @click="openDisposisi(item)"
                                     class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mr-3"
                                 >
                                     Disposisi
@@ -181,7 +181,7 @@ onMounted(fetchItems);
             </div>
         </div>
 
-        <SuratUndanganForm
+        <SuratForm
             v-if="showForm"
             :item="editingItem"
             @submit="handleSubmit"

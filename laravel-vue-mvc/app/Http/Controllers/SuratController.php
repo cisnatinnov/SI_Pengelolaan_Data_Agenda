@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KendaliSuratMasuk;
-use App\Models\SuratKegiatan;
-use App\Models\SuratUndangan;
+use App\Models\Disposisi;
+use App\Models\Surat;
 use Illuminate\Http\Request;
 
-class SuratUndanganController extends Controller
+class SuratController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return SuratUndangan::orderByDesc('created_at')->get();
+        return Surat::orderByDesc('created_at')->get();
     }
 
     /**
@@ -24,40 +23,39 @@ class SuratUndanganController extends Controller
     {
         $data = $this->validateData($request);
 
-        $suratUndangan = SuratUndangan::create($data);
+        $surat = Surat::create($data);
 
-        $this->insertKendali($data);
-        $this->insertSuratKegiatan($suratUndangan, $data);
+        $this->insertDisposisi($surat, $data);
 
-        return response()->json($suratUndangan, 201);
+        return response()->json($surat, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(SuratUndangan $suratUndangan)
+    public function show(Surat $surat)
     {
-        return $suratUndangan;
+        return $surat;
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, SuratUndangan $suratUndangan)
+    public function update(Request $request, Surat $surat)
     {
         $data = $this->validateData($request);
 
-        $suratUndangan->update($data);
+        $surat->update($data);
 
-        return $suratUndangan;
+        return $surat;
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SuratUndangan $suratUndangan)
+    public function destroy(Surat $surat)
     {
-        $suratUndangan->delete();
+        $surat->delete();
 
         return response()->json(null, 204);
     }
@@ -83,29 +81,15 @@ class SuratUndanganController extends Controller
     }
 
     /**
-     * Auto-insert a kendali surat masuk record.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    private function insertKendali(array $data): void
-    {
-        KendaliSuratMasuk::create([
-            'tanggal_surat' => $data['tanggal'],
-            'perihal' => $data['perihal'],
-            'keterangan' => 'diterima',
-        ]);
-    }
-
-    /**
-     * Auto-create a surat kegiatan record from the surat undangan data.
+     * Auto-create a disposisi record from the surat data.
      * Tandatangan fields are intentionally left blank.
      *
      * @param  array<string, mixed>  $data
      */
-    private function insertSuratKegiatan(SuratUndangan $suratUndangan, array $data): void
+    private function insertDisposisi(Surat $surat, array $data): void
     {
-        SuratKegiatan::create([
-            'surat_undangan_id' => $suratUndangan->id,
+        Disposisi::create([
+            'surat_id' => $surat->id,
             'tanggal' => $data['tanggal'],
             'nomor_surat' => $data['nomor_surat'],
             'asal_surat' => $data['asal_surat'],
