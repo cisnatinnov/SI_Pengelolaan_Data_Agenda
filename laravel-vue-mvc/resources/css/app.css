@@ -1,0 +1,113 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../**/*.vue';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Orbitron', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+@font-face {
+    font-family: 'Orbitron';
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/orbitron/v31/yMJRMIoyzdV5nMxqoiWGUh8Vlmw.woff2) format('woff2');
+}
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply antialiased;
+    }
+
+    ::selection {
+        @apply bg-cyan-500/30 text-inherit;
+    }
+}
+
+@layer utilities {
+    .font-display {
+        font-family: var(--font-display);
+    }
+
+    .glass {
+        @apply bg-white/70 backdrop-blur-xl border border-white/40;
+    }
+
+    .glass-dark {
+        @apply bg-slate-900/60 backdrop-blur-xl border border-white/10;
+    }
+
+    .neon-text {
+        text-shadow:
+            0 0 10px rgba(34, 211, 238, 0.6),
+            0 0 25px rgba(34, 211, 238, 0.35);
+    }
+
+    .neon-box {
+        box-shadow:
+            0 0 12px rgba(34, 211, 238, 0.15),
+            0 4px 20px rgba(99, 102, 241, 0.12);
+    }
+
+    .bg-grid {
+        background-image:
+            linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+        background-size: 42px 42px;
+    }
+
+    .bg-grid-faded {
+        mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    }
+
+    .gradient-brand {
+        @apply bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500;
+    }
+
+    .gradient-brand-text {
+        @apply bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500 bg-clip-text text-transparent;
+    }
+
+    .anim-grid-pan {
+        animation: grid-pan 20s linear infinite;
+    }
+}
+
+@keyframes grid-pan {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 42px 42px;
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.slide-right-enter-active,
+.slide-right-leave-active {
+    transition: transform 0.3s ease;
+}
+.slide-right-enter-from,
+.slide-right-leave-to {
+    transform: translateX(-100%);
+}
