@@ -137,9 +137,9 @@ onMounted(fetchItems);
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                     class="inline-block px-2.5 py-1 rounded-full text-xs font-medium"
-                                    :class="roleLabels[item.role]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
+                                    :class="roleLabels[item.role_slug]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
                                 >
-                                    {{ roleLabels[item.role]?.text ?? item.role }}
+                                    {{ roleLabels[item.role_slug]?.text ?? item.role?.name }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">

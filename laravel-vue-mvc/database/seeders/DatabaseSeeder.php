@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Kegiatan;
 use App\Models\KendaliSuratMasuk;
+use App\Models\Role;
 use App\Models\SuratKegiatan;
 use App\Models\SuratUndangan;
 use App\Models\User;
@@ -29,8 +30,15 @@ class DatabaseSeeder extends Seeder
         KendaliSuratMasuk::truncate();
         Kegiatan::truncate();
         User::truncate();
+        Role::truncate();
         DB::table('sessions')->truncate();
         Schema::enableForeignKeyConstraints();
+
+        // Seed roles.
+        $roles = [];
+        foreach (['admin' => 'Admin', 'staff' => 'Staff', 'asisten_daerah' => 'Asisten Daerah', 'opd' => 'OPD'] as $slug => $name) {
+            $roles[$slug] = Role::create(['name' => $name, 'slug' => $slug])->id;
+        }
 
         // Create one user per role.
         $users = [
@@ -42,8 +50,10 @@ class DatabaseSeeder extends Seeder
 
         foreach ($users as $user) {
             User::create([
-                ...$user,
-                'password' => Hash::make('password'),
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'role_id' => $roles[$user['role']],
+                'password' => Hash::make('Password@123'),
             ]);
         }
     }

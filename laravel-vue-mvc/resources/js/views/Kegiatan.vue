@@ -11,7 +11,7 @@ defineProps({
 });
 
 const user = window.Laravel?.user ?? null;
-const canManage = user?.role === 'staff';
+const canManage = user?.role_slug === 'staff';
 
 const items = ref([]);
 const loading = ref(false);

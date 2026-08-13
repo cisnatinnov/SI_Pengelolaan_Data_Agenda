@@ -18,7 +18,7 @@
         <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
         <script>
-            window.Laravel = { user: @json(auth()->user()?->only('name', 'email', 'role')) };
+            window.Laravel = { user: @json(auth()->user()?->only('name', 'email') + ['role_slug' => auth()->user()?->role_slug]) };
         </script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SuratKegiatanController;
 use App\Http\Controllers\SuratUndanganController;
 use App\Http\Controllers\UserController;
@@ -18,4 +19,5 @@ Route::middleware('auth')->group(function () {
 
     // Only admin can manage users.
     Route::apiResource('users', UserController::class)->middleware('role:admin');
+    Route::get('roles', [RoleController::class, 'index'])->middleware('role:admin');
 });

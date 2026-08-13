@@ -58,7 +58,7 @@ const viewRoles = {
 };
 
 const currentView = computed(() =>
-    viewRoles[activeView.value]?.includes(user?.role) ? activeView.value : 'dashboard'
+    viewRoles[activeView.value]?.includes(user?.role_slug) ? activeView.value : 'dashboard'
 );
 
 const toggleSidebar = () => {
@@ -101,7 +101,7 @@ const toggleSidebar = () => {
                 :collapsed="sidebarCollapsed"
                 :active="activeView"
                 :theme="theme"
-                :role="user?.role ?? 'staff'"
+                :role="user?.role_slug ?? 'staff'"
                 @navigate="navigate"
                 @toggle-theme="toggleTheme"
             />
@@ -111,7 +111,7 @@ const toggleSidebar = () => {
                 :collapsed="false"
                 :active="activeView"
                 :theme="theme"
-                :role="user?.role ?? 'staff'"
+                :role="user?.role_slug ?? 'staff'"
                 mobile
                 @navigate="navigate"
                 @close="mobileSidebarOpen = false"

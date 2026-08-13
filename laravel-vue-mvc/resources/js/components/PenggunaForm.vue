@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, watch } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
     item: {
@@ -10,19 +11,57 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'close']);
 
+const roles = ref([]);
+const roleLoading = ref(false);
+const roleError = ref('');
+
 const form = reactive({
     name: '',
     email: '',
-    role: 'staff',
+    role_id: '',
     password: '',
 });
 
 if (props.item) {
     form.name = props.item.name ?? '';
     form.email = props.item.email ?? '';
-    form.role = props.item.role ?? 'staff';
+    form.role_id = props.item.role_id ?? '';
     form.password = '';
 }
+
+onMounted(async () => {
+    roleLoading.value = true;
+    try {
+        const { data } = await axios.get('/api/roles');
+        roles.value = data;
+        if (!form.role_id && roles.value.length > 0) {
+            form.role_id = roles.value[0].id;
+        }
+    } catch (err) {
+        roleError.value = 'Gagal memuat daftar role.';
+    } finally {
+        roleLoading.value = false;
+    }
+});
+
+const passwordRules = [
+    { label: 'Minimal 8 karakter', check: (p) => p.length >= 8 },
+    { label: 'Minimal 1 huruf kapital', check: (p) => /[A-Z]/.test(p) },
+    { label: 'Minimal 1 angka', check: (p) => /[0-9]/.test(p) },
+    { label: 'Minimal 1 karakter unik (simbol)', check: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+const metCount = computed(() =>
+    passwordRules.filter((rule) => rule.check(form.password)).length
+);
+
+const strength = computed(() => {
+    const count = metCount.value;
+    if (count === 0) return { label: 'Kosong', class: 'bg-slate-300', text: 'text-slate-500' };
+    if (count <= 2) return { label: 'Lemah', class: 'bg-red-500', text: 'text-red-500' };
+    if (count === 3) return { label: 'Sedang', class: 'bg-amber-500', text: 'text-amber-500' };
+    return { label: 'Kuat', class: 'bg-emerald-500', text: 'text-emerald-500' };
+});
 
 function submitForm() {
     const payload = { ...form };
@@ -74,18 +113,25 @@ function submitForm() {
                     </div>
 
                     <div>
-                        <label for="role" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="role_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                             Role
                         </label>
+                        <p v-if="roleError" class="text-xs text-red-500 mb-1">{{ roleError }}</p>
                         <select
-                            id="role"
-                            v-model="form.role"
+                            id="role_id"
+                            v-model="form.role_id"
+                            :disabled="roleLoading"
+                            required
                             class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
                         >
-                            <option value="admin">Admin</option>
-                            <option value="staff">Staff</option>
-                            <option value="asisten_daerah">Asisten Daerah</option>
-                            <option value="opd">OPD</option>
+                            <option v-if="roleLoading" value="" disabled>Memuat role...</option>
+                            <option
+                                v-for="role in roles"
+                                :key="role.id"
+                                :value="role.id"
+                            >
+                                {{ role.name }}
+                            </option>
                         </select>
                     </div>
 
@@ -103,6 +149,30 @@ function submitForm() {
                             autocomplete="new-password"
                             class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
                         />
+
+                        <template v-if="form.password">
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="flex-1 h-2 rounded-full overflow-hidden bg-slate-200 dark:bg-white/10">
+                                    <div
+                                        class="h-full transition-all duration-300"
+                                        :class="strength.class"
+                                        :style="{ width: (metCount / passwordRules.length) * 100 + '%' }"
+                                    ></div>
+                                </div>
+                                <span class="text-xs font-medium" :class="strength.text">{{ strength.label }}</span>
+                            </div>
+                            <ul class="mt-2 space-y-1">
+                                <li
+                                    v-for="rule in passwordRules"
+                                    :key="rule.label"
+                                    class="flex items-center gap-2 text-xs"
+                                    :class="rule.check(form.password) ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'"
+                                >
+                                    <span>{{ rule.check(form.password) ? '✓' : '○' }}</span>
+                                    {{ rule.label }}
+                                </li>
+                            </ul>
+                        </template>
                     </div>
                 </div>
 

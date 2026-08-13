@@ -18,14 +18,24 @@
 
 ## Akun Login (per Role)
 
-Semua akun menggunakan password: **password**
+Semua akun menggunakan password: **Password@123**
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `admin@example.com` | `password` |
-| Staff | `staff@example.com` | `password` |
-| Asisten Daerah | `asisten@example.com` | `password` |
-| OPD | `opd@example.com` | `password` |
+| Admin | `admin@example.com` | `Password@123` |
+| Staff | `staff@example.com` | `Password@123` |
+| Asisten Daerah | `asisten@example.com` | `Password@123` |
+| OPD | `opd@example.com` | `Password@123` |
+
+## Kebijakan Password
+
+Password harus memenuhi semua aturan berikut:
+- Minimal **8 karakter**
+- Minimal **1 huruf kapital** (A-Z)
+- Minimal **1 angka** (0-9)
+- Minimal **1 karakter unik/simbol** (mis. `@`, `#`, `!`)
+
+Saat mengelola pengguna, form menampilkan indikator kekuatan password secara real-time.
 
 ## Hak Akses per Role
 
