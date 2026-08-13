@@ -22,7 +22,7 @@
             <div class="w-full max-w-md glass rounded-2xl border border-slate-200/70 shadow-2xl p-8">
                 <div class="text-center mb-8">
                     <h1 class="text-2xl font-display font-bold gradient-brand-text">DATA AGENDA</h1>
-                    <p class="mt-1 text-sm text-slate-500">Login sebagai Staff untuk melanjutkan</p>
+                    <p class="mt-1 text-sm text-slate-500">Anda Harus Login untuk Melanjutkan</p>
                 </div>
 
                 @if ($errors->any())
