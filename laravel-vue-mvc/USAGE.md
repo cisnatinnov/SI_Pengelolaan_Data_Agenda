@@ -52,7 +52,9 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 ## Menu
 
 ### Dashboard
-Ringkasan statistik keterangan disposisi: **Diterima**, **Ditolak**, dan **Disahkan**.
+Ringkasan statistik:
+- **Disposisi**: Total, Diterima, Ditolak, Disahkan.
+- **Kegiatan**: Total, Dilaksanakan (terlaksana), Tidak Dilaksanakan (tidak terlaksana).
 
 ### Kegiatan
 Data kegiatan dengan kolom:

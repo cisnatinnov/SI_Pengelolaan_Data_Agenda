@@ -12,34 +12,68 @@ defineProps({
 
 const loading = ref(false);
 const error = ref('');
-const stats = ref([]);
+const disposisiStats = ref([]);
+const kegiatanStats = ref([]);
 
 const fetchStats = async () => {
     loading.value = true;
     error.value = '';
     try {
-        const { data } = await axios.get('/api/disposisi');
-        const diterima = data.filter((item) => item.keterangan === 'diterima').length;
-        const ditolak = data.filter((item) => item.keterangan === 'ditolak').length;
-        const disahkan = data.filter((item) => item.keterangan === 'disahkan').length;
-        stats.value = [
+        const [disposisiRes, kegiatanRes] = await Promise.all([
+            axios.get('/api/disposisi'),
+            axios.get('/api/kegiatan'),
+        ]);
+
+        const disposisi = disposisiRes.data;
+        const kegiatan = kegiatanRes.data;
+
+        const count = (arr, key, value) => arr.filter((item) => item[key] === value).length;
+
+        disposisiStats.value = [
+            {
+                title: 'Total',
+                value: String(disposisi.length),
+                subtitle: 'Disposisi',
+                accent: 'from-slate-400 to-slate-500',
+            },
             {
                 title: 'Diterima',
-                value: String(diterima),
+                value: String(count(disposisi, 'keterangan', 'diterima')),
                 subtitle: 'Disposisi diterima',
                 accent: 'from-cyan-500 to-indigo-500',
             },
             {
                 title: 'Ditolak',
-                value: String(ditolak),
+                value: String(count(disposisi, 'keterangan', 'ditolak')),
                 subtitle: 'Disposisi ditolak',
                 accent: 'from-red-500 to-rose-500',
             },
             {
                 title: 'Disahkan',
-                value: String(disahkan),
+                value: String(count(disposisi, 'keterangan', 'disahkan')),
                 subtitle: 'Disposisi disahkan',
                 accent: 'from-emerald-500 to-teal-500',
+            },
+        ];
+
+        kegiatanStats.value = [
+            {
+                title: 'Total',
+                value: String(kegiatan.length),
+                subtitle: 'Kegiatan',
+                accent: 'from-indigo-500 to-purple-500',
+            },
+            {
+                title: 'Dilaksanakan',
+                value: String(count(kegiatan, 'realisasi_pelaksanaan', 'terlaksana')),
+                subtitle: 'Kegiatan terlaksana',
+                accent: 'from-emerald-500 to-teal-500',
+            },
+            {
+                title: 'Tidak Dilaksanakan',
+                value: String(count(kegiatan, 'realisasi_pelaksanaan', 'tidak')),
+                subtitle: 'Kegiatan tidak terlaksana',
+                accent: 'from-red-500 to-rose-500',
             },
         ];
     } catch (err) {
@@ -57,7 +91,7 @@ onMounted(fetchStats);
         <div class="mb-6">
             <h2 class="text-2xl font-display font-bold gradient-brand-text">Dashboard</h2>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Statistik keterangan disposisi
+                Ringkasan statistik disposisi dan kegiatan
             </p>
         </div>
 
@@ -72,15 +106,38 @@ onMounted(fetchStats);
             Memuat data...
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <StatCard
-                v-for="stat in stats"
-                :key="stat.title"
-                :title="stat.title"
-                :value="stat.value"
-                :subtitle="stat.subtitle"
-                :accent="stat.accent"
-            />
-        </div>
+        <template v-else>
+            <div class="mb-6">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Disposisi
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard
+                        v-for="stat in disposisiStats"
+                        :key="stat.title"
+                        :title="stat.title"
+                        :value="stat.value"
+                        :subtitle="stat.subtitle"
+                        :accent="stat.accent"
+                    />
+                </div>
+            </div>
+
+            <div>
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Kegiatan
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <StatCard
+                        v-for="stat in kegiatanStats"
+                        :key="stat.title"
+                        :title="stat.title"
+                        :value="stat.value"
+                        :subtitle="stat.subtitle"
+                        :accent="stat.accent"
+                    />
+                </div>
+            </div>
+        </template>
     </div>
 </template>
