@@ -53,7 +53,7 @@ const navigate = (key, payload = null) => {
 // Roles allowed per view; must stay in sync with AppSidebar.
 const viewRoles = {
     dashboard: ['admin', 'staff', 'asisten_daerah', 'opd'],
-    kegiatan: ['admin', 'staff', 'asisten_daerah', 'opd'],
+    kegiatan: ['staff', 'asisten_daerah', 'opd'],
     surat: ['staff'],
     disposisi: ['staff', 'asisten_daerah'],
     pengguna: ['admin'],

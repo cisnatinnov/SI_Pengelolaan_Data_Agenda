@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import StatCard from '../components/StatCard.vue';
 
@@ -10,10 +10,32 @@ defineProps({
     },
 });
 
+const user = window.Laravel?.user ?? null;
+const showKegiatanPeriode = computed(() => ['admin', 'asisten_daerah'].includes(user?.role_slug));
+
 const loading = ref(false);
 const error = ref('');
 const disposisiStats = ref([]);
 const kegiatanStats = ref([]);
+const kegiatanData = ref([]);
+
+const kegiatanPeriode = computed(() => {
+    const map = new Map();
+    for (const item of kegiatanData.value) {
+        const date = new Date(item.tanggal_kegiatan);
+        if (Number.isNaN(date.getTime())) continue;
+
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const label = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date);
+
+        const entry = map.get(key) ?? { key, label, total: 0, terlaksana: 0, tidak: 0 };
+        entry.total++;
+        if (item.realisasi_pelaksanaan === 'terlaksana') entry.terlaksana++;
+        if (item.realisasi_pelaksanaan === 'tidak') entry.tidak++;
+        map.set(key, entry);
+    }
+    return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
+});
 
 const fetchStats = async () => {
     loading.value = true;
@@ -26,6 +48,7 @@ const fetchStats = async () => {
 
         const disposisi = disposisiRes.data;
         const kegiatan = kegiatanRes.data;
+        kegiatanData.value = kegiatan;
 
         const count = (arr, key, value) => arr.filter((item) => item[key] === value).length;
 
@@ -123,7 +146,7 @@ onMounted(fetchStats);
                 </div>
             </div>
 
-            <div>
+            <div class="mb-6">
                 <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Kegiatan
                 </h3>
@@ -136,6 +159,44 @@ onMounted(fetchStats);
                         :subtitle="stat.subtitle"
                         :accent="stat.accent"
                     />
+                </div>
+            </div>
+
+            <div v-if="showKegiatanPeriode">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Kegiatan per Periode
+                </h3>
+                <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/10 overflow-hidden">
+                    <div
+                        v-if="kegiatanPeriode.length === 0"
+                        class="p-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                    >
+                        Belum ada data kegiatan.
+                    </div>
+                    <div v-else class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
+                            <thead class="bg-slate-50/70 dark:bg-white/5">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Periode</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dilaksanakan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tidak Dilaksanakan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-white/10">
+                                <tr
+                                    v-for="periode in kegiatanPeriode"
+                                    :key="periode.key"
+                                    class="hover:bg-slate-50/60 dark:hover:bg-white/5 transition-colors"
+                                >
+                                    <td class="px-6 py-4 text-sm font-medium capitalize">{{ periode.label }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ periode.total }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 dark:text-emerald-400">{{ periode.terlaksana }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400">{{ periode.tidak }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </template>

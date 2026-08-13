@@ -42,7 +42,7 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 | Menu | Admin | Staff | Asisten Daerah | OPD |
 |------|:-----:|:-----:|:--------------:|:---:|
 | Dashboard | ✅ | ✅ | ✅ | ✅ |
-| Kegiatan — lihat | ✅ | ✅ | ✅ | ✅ |
+| Kegiatan (menu) | ❌ | ✅ | ✅ | ✅ |
 | Kegiatan — tambah/edit/hapus | ❌ | ✅ | ❌ | ❌ |
 | Surat | ❌ | ✅ | ❌ | ❌ |
 | Disposisi | ❌ | ✅ | ✅ | ❌ |
@@ -53,8 +53,11 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 
 ### Dashboard
 Ringkasan statistik:
-- **Disposisi**: Total, Diterima, Ditolak, Disahkan.
+- **Disposisi**: Total, Diterima, Ditolak, Disahkan — terlihat oleh semua role.
 - **Kegiatan**: Total, Dilaksanakan (terlaksana), Tidak Dilaksanakan (tidak terlaksana).
+- **Kegiatan per Periode** (khusus Admin dan Asisten Daerah): tabel rekap jumlah kegiatan per bulan (Total, Dilaksanakan, Tidak Dilaksanakan).
+
+Catatan: Admin tidak memiliki menu **Kegiatan**, tetapi tetap melihat statistik kegiatan di Dashboard.
 
 ### Kegiatan
 Data kegiatan dengan kolom:

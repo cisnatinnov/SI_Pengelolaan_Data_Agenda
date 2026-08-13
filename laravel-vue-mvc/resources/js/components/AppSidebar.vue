@@ -13,7 +13,7 @@ const emit = defineEmits(['navigate', 'close', 'toggle-theme']);
 
 const allLinks = [
     { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', roles: ['admin', 'staff', 'asisten_daerah', 'opd'] },
-    { key: 'kegiatan', label: 'Kegiatan', icon: 'kegiatan', roles: ['admin', 'staff', 'asisten_daerah', 'opd'] },
+    { key: 'kegiatan', label: 'Kegiatan', icon: 'kegiatan', roles: ['staff', 'asisten_daerah', 'opd'] },
     { key: 'surat', label: 'Surat', icon: 'surat', roles: ['staff'] },
     { key: 'disposisi', label: 'Disposisi', icon: 'disposisi', roles: ['staff', 'asisten_daerah'] },
     { key: 'pengingat', label: 'Pengingat', icon: 'pengingat', roles: ['staff', 'asisten_daerah', 'opd'] },
