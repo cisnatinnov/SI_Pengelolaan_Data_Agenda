@@ -1,5 +1,6 @@
 <script setup>
 import { reactive } from 'vue';
+import { useFormValidation } from '../composables/useFormValidation';
 
 const props = defineProps({
     item: {
@@ -36,7 +37,23 @@ if (props.item) {
     form.alasan = props.item.alasan ?? '';
 }
 
+const { errors, validateAll, onInput, fieldClass } = useFormValidation({
+    tanggal: () => (form.tanggal ? null : 'Tanggal wajib diisi.'),
+    nomor_surat: () => (form.nomor_surat.trim() ? null : 'Nomor surat wajib diisi.'),
+    asal_surat: () => (form.asal_surat.trim() ? null : 'Asal surat wajib diisi.'),
+    perihal: () => (form.perihal.trim() ? null : 'Perihal wajib diisi.'),
+    kepada: () => (form.kepada.trim() ? null : 'Kepada wajib diisi.'),
+    pembawa_surat: () => (form.pembawa_surat.trim() ? null : 'Pembawa surat wajib diisi.'),
+    alasan: () =>
+        form.keterangan === 'ditolak' && !form.alasan.trim() ? 'Alasan penolakan wajib diisi.' : null,
+});
+
 function submitForm() {
+    const firstKey = validateAll();
+    if (firstKey) {
+        document.getElementById(firstKey)?.focus();
+        return;
+    }
     emit('submit', { ...form });
 }
 
@@ -64,7 +81,7 @@ const fields = [
                 </h3>
             </div>
 
-            <form @submit.prevent="submitForm">
+            <form novalidate @submit.prevent="submitForm">
                 <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div v-for="field in fields" :key="field.key" class="sm:col-span-1">
                         <label
@@ -78,8 +95,12 @@ const fields = [
                             v-model="form[field.key]"
                             :type="field.type"
                             :required="!field.key.startsWith('tandatangan')"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput(field.key)"
+                            :class="fieldClass(field.key)"
                         />
+                        <p v-if="errors[field.key]" class="mt-1 text-xs text-red-500">
+                            {{ errors[field.key] }}
+                        </p>
                     </div>
 
                     <div class="sm:col-span-2">
@@ -112,8 +133,12 @@ const fields = [
                             v-model="form.alasan"
                             required
                             rows="3"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('alasan')"
+                            :class="fieldClass('alasan')"
                         ></textarea>
+                        <p v-if="errors.alasan" class="mt-1 text-xs text-red-500">
+                            {{ errors.alasan }}
+                        </p>
                     </div>
                 </div>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
+import { useFormValidation } from '../composables/useFormValidation';
 
 const props = defineProps({
     item: {
@@ -63,7 +64,31 @@ const strength = computed(() => {
     return { label: 'Kuat', class: 'bg-emerald-500', text: 'text-emerald-500' };
 });
 
+const { errors, validateAll, onInput, fieldClass } = useFormValidation({
+    name: () => (form.name.trim() ? null : 'Nama wajib diisi.'),
+    email: () => {
+        if (!form.email.trim()) return 'Email wajib diisi.';
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+            ? null
+            : 'Format email tidak valid.';
+    },
+    role_id: () => (form.role_id ? null : 'Role wajib dipilih.'),
+    password: () => {
+        if (!props.item && !form.password) return 'Password wajib diisi.';
+        if (form.password && metCount.value < passwordRules.length) {
+            return 'Password harus memenuhi semua ketentuan.';
+        }
+        return null;
+    },
+});
+
 function submitForm() {
+    const firstKey = validateAll();
+    if (firstKey) {
+        document.getElementById(firstKey)?.focus();
+        return;
+    }
+
     const payload = { ...form };
     if (!payload.password) {
         delete payload.password;
@@ -84,7 +109,7 @@ function submitForm() {
                 </h3>
             </div>
 
-            <form @submit.prevent="submitForm">
+            <form novalidate @submit.prevent="submitForm">
                 <div class="px-6 py-4 space-y-4">
                     <div>
                         <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -95,8 +120,12 @@ function submitForm() {
                             v-model="form.name"
                             type="text"
                             required
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('name')"
+                            :class="fieldClass('name')"
                         />
+                        <p v-if="errors.name" class="mt-1 text-xs text-red-500">
+                            {{ errors.name }}
+                        </p>
                     </div>
 
                     <div>
@@ -108,8 +137,12 @@ function submitForm() {
                             v-model="form.email"
                             type="email"
                             required
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('email')"
+                            :class="fieldClass('email')"
                         />
+                        <p v-if="errors.email" class="mt-1 text-xs text-red-500">
+                            {{ errors.email }}
+                        </p>
                     </div>
 
                     <div>
@@ -122,7 +155,8 @@ function submitForm() {
                             v-model="form.role_id"
                             :disabled="roleLoading"
                             required
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('role_id')"
+                            :class="fieldClass('role_id')"
                         >
                             <option v-if="roleLoading" value="" disabled>Memuat role...</option>
                             <option
@@ -133,6 +167,9 @@ function submitForm() {
                                 {{ role.name }}
                             </option>
                         </select>
+                        <p v-if="errors.role_id" class="mt-1 text-xs text-red-500">
+                            {{ errors.role_id }}
+                        </p>
                     </div>
 
                     <div>
@@ -147,8 +184,12 @@ function submitForm() {
                             :required="!item"
                             minlength="8"
                             autocomplete="new-password"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('password')"
+                            :class="fieldClass('password')"
                         />
+                        <p v-if="errors.password" class="mt-1 text-xs text-red-500">
+                            {{ errors.password }}
+                        </p>
 
                         <template v-if="form.password">
                             <div class="mt-2 flex items-center gap-2">

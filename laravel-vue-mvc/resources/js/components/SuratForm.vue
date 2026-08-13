@@ -1,5 +1,6 @@
 <script setup>
 import { reactive } from 'vue';
+import { useFormValidation } from '../composables/useFormValidation';
 
 const props = defineProps({
     item: {
@@ -34,7 +35,23 @@ if (props.item) {
     form.tandatangan = props.item.tandatangan ?? '';
 }
 
+const { errors, validateAll, onInput, fieldClass } = useFormValidation({
+    tanggal: () => (form.tanggal ? null : 'Tanggal wajib diisi.'),
+    nomor_surat: () => (form.nomor_surat.trim() ? null : 'Nomor surat wajib diisi.'),
+    asal_surat: () => (form.asal_surat.trim() ? null : 'Asal surat wajib diisi.'),
+    perihal: () => (form.perihal.trim() ? null : 'Perihal wajib diisi.'),
+    kepada: () => (form.kepada.trim() ? null : 'Kepada wajib diisi.'),
+    tanggal_pelaksanaan: () => (form.tanggal_pelaksanaan ? null : 'Tanggal pelaksanaan wajib diisi.'),
+    tempat_pelaksanaan: () => (form.tempat_pelaksanaan.trim() ? null : 'Tempat pelaksanaan wajib diisi.'),
+    pembawa_surat: () => (form.pembawa_surat.trim() ? null : 'Pembawa surat wajib diisi.'),
+});
+
 function submitForm() {
+    const firstKey = validateAll();
+    if (firstKey) {
+        document.getElementById(firstKey)?.focus();
+        return;
+    }
     emit('submit', { ...form });
 }
 
@@ -47,7 +64,7 @@ const fields = [
     { key: 'tanggal_pelaksanaan', label: 'Tanggal Pelaksanaan', type: 'datetime-local', span: 1 },
     { key: 'tempat_pelaksanaan', label: 'Tempat Pelaksanaan', type: 'text', span: 2 },
     { key: 'pembawa_surat', label: 'Pembawa Surat', type: 'text', span: 1 },
-    { key: 'tandatangan', label: 'Tandatangan', type: 'text', span: 1 },
+    { key: 'tandatangan', label: 'Tandatangan', type: 'text', span: 1, optional: true },
 ];
 </script>
 
@@ -63,7 +80,7 @@ const fields = [
                 </h3>
             </div>
 
-            <form @submit.prevent="submitForm">
+            <form novalidate @submit.prevent="submitForm">
                 <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div
                         v-for="field in fields"
@@ -80,9 +97,13 @@ const fields = [
                             :id="field.key"
                             v-model="form[field.key]"
                             :type="field.type"
-                            required
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            :required="!field.optional"
+                            @input="onInput(field.key)"
+                            :class="fieldClass(field.key)"
                         />
+                        <p v-if="errors[field.key]" class="mt-1 text-xs text-red-500">
+                            {{ errors[field.key] }}
+                        </p>
                     </div>
                 </div>
 

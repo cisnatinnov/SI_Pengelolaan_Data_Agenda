@@ -31,7 +31,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="/login" class="space-y-4">
+                <form method="POST" action="/login" class="space-y-4" novalidate>
                     @csrf
 
                     <div>
@@ -46,6 +46,7 @@
                             autocomplete="username"
                             class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none"
                         >
+                        <p id="email-error" class="mt-1 text-xs text-red-500" hidden></p>
                     </div>
 
                     <div>
@@ -58,6 +59,7 @@
                             autocomplete="current-password"
                             class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none"
                         >
+                        <p id="password-error" class="mt-1 text-xs text-red-500" hidden></p>
                     </div>
 
                     <label class="flex items-center gap-2 text-sm text-slate-600">
@@ -74,5 +76,67 @@
                 </form>
             </div>
         </div>
+
+        <script>
+            (function () {
+                var form = document.querySelector('form');
+                var email = document.getElementById('email');
+                var password = document.getElementById('password');
+                var emailError = document.getElementById('email-error');
+                var passwordError = document.getElementById('password-error');
+
+                var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                function validateEmail() {
+                    if (!email.value.trim()) return 'Email wajib diisi.';
+                    if (!emailPattern.test(email.value)) return 'Format email tidak valid.';
+                    return null;
+                }
+
+                function validatePassword() {
+                    if (!password.value) return 'Password wajib diisi.';
+                    return null;
+                }
+
+                function setError(input, errorEl, message) {
+                    if (message) {
+                        errorEl.textContent = message;
+                        errorEl.hidden = false;
+                        input.style.borderColor = '#ef4444';
+                    } else {
+                        errorEl.hidden = true;
+                        input.style.borderColor = '';
+                    }
+                }
+
+                form.addEventListener('submit', function (e) {
+                    var emailMsg = validateEmail();
+                    var passwordMsg = validatePassword();
+
+                    setError(email, emailError, emailMsg);
+                    setError(password, passwordError, passwordMsg);
+
+                    if (emailMsg || passwordMsg) {
+                        e.preventDefault();
+                        if (emailMsg) {
+                            email.focus();
+                        } else {
+                            password.focus();
+                        }
+                    }
+                });
+
+                function onInput(e) {
+                    if (e.currentTarget === email) {
+                        setError(email, emailError, validateEmail());
+                    } else {
+                        setError(password, passwordError, validatePassword());
+                    }
+                }
+
+                email.addEventListener('input', onInput);
+                password.addEventListener('input', onInput);
+            })();
+        </script>
     </body>
 </html>

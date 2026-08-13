@@ -1,5 +1,6 @@
 <script setup>
 import { reactive } from 'vue';
+import { useFormValidation } from '../composables/useFormValidation';
 
 const props = defineProps({
     item: {
@@ -26,7 +27,17 @@ if (props.item) {
     form.status = props.item.status ?? 'pending';
 }
 
+const { errors, validateAll, onInput, fieldClass } = useFormValidation({
+    judul: () => (form.judul.trim() ? null : 'Judul wajib diisi.'),
+    tanggal_pengingat: () => (form.tanggal_pengingat ? null : 'Tanggal pengingat wajib diisi.'),
+});
+
 function submitForm() {
+    const firstKey = validateAll();
+    if (firstKey) {
+        document.getElementById(firstKey)?.focus();
+        return;
+    }
     emit('submit', { ...form });
 }
 </script>
@@ -43,7 +54,7 @@ function submitForm() {
                 </h3>
             </div>
 
-            <form @submit.prevent="submitForm">
+            <form novalidate @submit.prevent="submitForm">
                 <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
                         <label for="judul" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -54,8 +65,12 @@ function submitForm() {
                             v-model="form.judul"
                             type="text"
                             required
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('judul')"
+                            :class="fieldClass('judul')"
                         />
+                        <p v-if="errors.judul" class="mt-1 text-xs text-red-500">
+                            {{ errors.judul }}
+                        </p>
                     </div>
 
                     <div class="sm:col-span-2">
@@ -79,8 +94,12 @@ function submitForm() {
                             v-model="form.tanggal_pengingat"
                             type="datetime-local"
                             required
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            @input="onInput('tanggal_pengingat')"
+                            :class="fieldClass('tanggal_pengingat')"
                         />
+                        <p v-if="errors.tanggal_pengingat" class="mt-1 text-xs text-red-500">
+                            {{ errors.tanggal_pengingat }}
+                        </p>
                     </div>
 
                     <div>
