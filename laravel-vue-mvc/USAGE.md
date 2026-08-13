@@ -52,12 +52,10 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 ## Menu
 
 ### Dashboard
-Ringkasan statistik:
-- **Disposisi**: Total, Diterima, Ditolak, Disahkan — terlihat oleh semua role.
+Ringkasan statistik yang sama untuk semua role:
+- **Disposisi**: Total, Diterima, Ditolak, Disahkan.
 - **Kegiatan**: Total, Dilaksanakan (terlaksana), Tidak Dilaksanakan (tidak terlaksana).
-- **Kegiatan per Periode** (khusus Admin dan Asisten Daerah): tabel rekap jumlah kegiatan per bulan (Total, Dilaksanakan, Tidak Dilaksanakan).
-
-Catatan: Admin tidak memiliki menu **Kegiatan**, tetapi tetap melihat statistik kegiatan di Dashboard.
+- **Kegiatan per Periode**: tabel rekap jumlah kegiatan per bulan (Total, Dilaksanakan, Tidak Dilaksanakan).
 
 ### Kegiatan
 Data kegiatan dengan kolom:

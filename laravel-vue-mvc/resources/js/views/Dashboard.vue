@@ -10,9 +10,6 @@ defineProps({
     },
 });
 
-const user = window.Laravel?.user ?? null;
-const showKegiatanPeriode = computed(() => ['admin', 'asisten_daerah'].includes(user?.role_slug));
-
 const loading = ref(false);
 const error = ref('');
 const disposisiStats = ref([]);
@@ -162,7 +159,7 @@ onMounted(fetchStats);
                 </div>
             </div>
 
-            <div v-if="showKegiatanPeriode">
+            <div>
                 <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Kegiatan per Periode
                 </h3>
