@@ -165,14 +165,14 @@ sequenceDiagram
     participant API as API (Laravel)
     participant DB as Database
 
-    Staff->>UI: Isi & kirim form Kegiatan
+    Staff->>UI: Isi dan kirim form Kegiatan
     UI->>API: POST /api/kegiatan
 
     rect rgb(230, 240, 255)
         Note over API,DB: Proses otomatis
-        API->>DB: Cek bentrok jadwal (tanggal & jam yang sama)
+        API->>DB: Cek bentrok jadwal (tanggal dan jam yang sama)
         alt Jadwal bentrok (sudah ada kegiatan lain)
-            API-->>UI: 422 "Jadwal bentrok: sudah ada kegiatan pada tanggal dan jam tersebut."
+            API-->>UI: 422 Jadwal bentrok
             UI-->>Staff: Perlihatkan pesan error
         else Jadwal tersedia
             API->>DB: Simpan data Kegiatan
@@ -243,13 +243,13 @@ flowchart TD
 ```mermaid
 flowchart TD
     A([Mulai]) --> B[Staff menginput data Kegiatan]
-    B --> C[Sistem menyimpan / memproses data]
-    C --> D{Auto: Cek bentrok jadwal<br/>(tanggal & jam yang sama)?}
-    D -- Bentrok --> E[Tolak pembuatan kegiatan<br/>+ pesan "Jadwal bentrok"]
+    B --> D{Auto cek bentrok jadwal}
+    D -- Bentrok pada tanggal dan jam yang sama --> E[Tolak pembuatan kegiatan]
+    E --> E1[Pesan: Jadwal bentrok]
     D -- Tersedia --> F[Simpan data Kegiatan]
-    F --> G[Auto: Membuat Pengingat ke semua role]
-    G --> H([Selesai])
-    E --> H
+    F --> G[Auto: Pengingat ke semua role]
+    E1 --> H([Selesai])
+    G --> H
 ```
 
 ---
