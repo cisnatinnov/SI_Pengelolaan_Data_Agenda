@@ -80,7 +80,7 @@ Data kegiatan dengan kolom:
 
 Hanya **Staff** yang dapat menambah, mengedit, dan menghapus. Role lain hanya dapat melihat.
 
-**Konfirmasi Kehadiran (OPD)**: hanya role **OPD** yang dapat mengonfirmasi kehadiran per kegiatan melalui tombol **Hadir** / **Tidak Hadir**. Konfirmasi tercatat per akun OPD dan dapat diubah. Role lain melihat rekap jumlah **hadir** dan **tidak hadir**.
+**Konfirmasi Kehadiran (OPD)**: hanya role **OPD** yang dapat mengonfirmasi kehadiran per kegiatan melalui tombol **Hadir** / **Tidak Hadir**. Konfirmasi tercatat per akun OPD dan dapat diubah. Role lain melihat rekap jumlah **hadir** dan **tidak hadir** serta dapat membuka **Daftar OPD** untuk melihat siapa saja yang mengonfirmasi hadir/tidak.
 
 ### Surat (Staff)
 Kelola data surat. Saat surat baru dibuat, sistem otomatis:

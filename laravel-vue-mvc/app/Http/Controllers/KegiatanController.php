@@ -14,15 +14,15 @@ class KegiatanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
         return Kegiatan::withCount([
             'kehadiran as hadir_count' => fn ($query) => $query->where('status', 'hadir'),
         ])->withCount([
             'kehadiran as tidak_count' => fn ($query) => $query->where('status', 'tidak'),
-        ])->with([
-            'kehadiran' => fn ($query) => $query->where('user_id', $request->user()->id),
-        ])->orderByDesc('tanggal_kegiatan')->get();
+        ])->with('kehadiran.user')
+          ->orderByDesc('tanggal_kegiatan')
+          ->get();
     }
 
     /**

@@ -19,6 +19,7 @@ const loading = ref(false);
 const error = ref('');
 const confirmingId = ref(null);
 const kehadiranError = ref('');
+const kehadiranListId = ref(null);
 
 const showForm = ref(false);
 const editingItem = ref(null);
@@ -100,6 +101,13 @@ const confirmAttendance = async (item, status) => {
     } finally {
         confirmingId.value = null;
     }
+};
+
+const ownKehadiran = (item) =>
+    item.kehadiran?.find((k) => k.user_id === user?.id)?.status ?? null;
+
+const toggleKehadiranList = (id) => {
+    kehadiranListId.value = kehadiranListId.value === id ? null : id;
 };
 
 onMounted(fetchItems);
@@ -206,7 +214,7 @@ onMounted(fetchItems);
                                             @click="confirmAttendance(item, 'hadir')"
                                             :disabled="confirmingId === item.id"
                                             class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50"
-                                            :class="item.kehadiran?.[0]?.status === 'hadir'
+                                            :class="ownKehadiran(item) === 'hadir'
                                                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
                                                 : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-300'"
                                         >
@@ -216,7 +224,7 @@ onMounted(fetchItems);
                                             @click="confirmAttendance(item, 'tidak')"
                                             :disabled="confirmingId === item.id"
                                             class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50"
-                                            :class="item.kehadiran?.[0]?.status === 'tidak'
+                                            :class="ownKehadiran(item) === 'tidak'
                                                 ? 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40'
                                                 : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-transparent hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300'"
                                         >
@@ -225,7 +233,31 @@ onMounted(fetchItems);
                                     </div>
                                 </template>
                                 <span v-else class="text-sm text-slate-500 dark:text-slate-400">
-                                    {{ item.hadir_count }} hadir · {{ item.tidak_count }} tidak
+                                    <span>{{ item.hadir_count }} hadir · {{ item.tidak_count }} tidak</span>
+                                    <button
+                                        v-if="item.kehadiran?.length"
+                                        @click="toggleKehadiranList(item.id)"
+                                        class="ml-2 text-xs font-medium text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                                    >
+                                        {{ kehadiranListId === item.id ? 'Sembunyikan' : 'Daftar OPD' }}
+                                    </button>
+                                    <ul v-if="kehadiranListId === item.id" class="mt-2 space-y-1">
+                                        <li
+                                            v-for="k in item.kehadiran"
+                                            :key="k.id"
+                                            class="flex items-center justify-between gap-3 text-xs"
+                                        >
+                                            <span class="text-slate-600 dark:text-slate-300">{{ k.user?.name ?? 'OPD' }}</span>
+                                            <span
+                                                class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium"
+                                                :class="k.status === 'hadir'
+                                                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                                                    : 'bg-red-500/15 text-red-700 dark:text-red-300'"
+                                            >
+                                                {{ k.status === 'hadir' ? 'Hadir' : 'Tidak Hadir' }}
+                                            </span>
+                                        </li>
+                                    </ul>
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
