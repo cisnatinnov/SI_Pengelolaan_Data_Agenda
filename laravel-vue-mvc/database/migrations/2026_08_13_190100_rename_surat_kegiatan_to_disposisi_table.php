@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::rename('surat_kegiatan', 'disposisi');
 
-        // The constraint name keeps the old table name, so drop it explicitly.
         Schema::table('disposisi', function (Blueprint $table) {
-            $table->dropForeign('surat_kegiatan_surat_undangan_id_foreign');
+            $table->dropForeign(['surat_undangan_id']);
             $table->renameColumn('surat_undangan_id', 'surat_id');
         });
 
