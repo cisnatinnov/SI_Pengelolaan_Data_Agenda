@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import KegiatanForm from '../components/KegiatanForm.vue';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 defineProps({
     payload: {
@@ -13,12 +15,13 @@ defineProps({
 const user = window.Laravel?.user ?? null;
 const canManage = user?.role_slug === 'staff';
 const isOpd = user?.role_slug === 'opd';
+const toast = useToast();
+const { confirm } = useConfirm();
 
 const items = ref([]);
 const loading = ref(false);
 const error = ref('');
 const confirmingId = ref(null);
-const kehadiranError = ref('');
 const kehadiranListId = ref(null);
 
 const showForm = ref(false);
@@ -69,35 +72,48 @@ const handleSubmit = async (payload) => {
     try {
         if (editingItem.value) {
             await axios.put(`/api/kegiatan/${editingItem.value.id}`, payload);
+            toast.success('Kegiatan berhasil diperbarui.');
         } else {
             await axios.post('/api/kegiatan', payload);
+            toast.success('Kegiatan berhasil ditambahkan.');
         }
         showForm.value = false;
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menyimpan data kegiatan.';
+        const message =
+            err.response?.data?.errors?.tanggal_kegiatan?.[0] ??
+            err.response?.data?.message ??
+            'Gagal menyimpan data kegiatan.';
+        toast.error(message);
     }
 };
 
 const removeItem = async (item) => {
-    if (!confirm(`Hapus kegiatan "${item.nama_kegiatan}"?`)) return;
+    const ok = await confirm({
+        title: 'Hapus Kegiatan',
+        message: `Hapus kegiatan "${item.nama_kegiatan}"?`,
+        confirmText: 'Hapus',
+        danger: true,
+    });
+    if (!ok) return;
     try {
         await axios.delete(`/api/kegiatan/${item.id}`);
+        toast.success('Kegiatan berhasil dihapus.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menghapus kegiatan.';
+        toast.error('Gagal menghapus kegiatan.');
     }
 };
 
 const confirmAttendance = async (item, status) => {
     if (confirmingId.value) return;
     confirmingId.value = item.id;
-    kehadiranError.value = '';
     try {
         await axios.post(`/api/kegiatan/${item.id}/kehadiran`, { status });
+        toast.success(`Kehadiran berhasil dikonfirmasi sebagai ${status === 'hadir' ? 'hadir' : 'tidak hadir'}.`);
         await fetchItems();
     } catch (err) {
-        kehadiranError.value = 'Gagal mengonfirmasi kehadiran.';
+        toast.error('Gagal mengonfirmasi kehadiran.');
     } finally {
         confirmingId.value = null;
     }
@@ -136,13 +152,6 @@ onMounted(fetchItems);
             class="mb-4 p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm rounded-xl backdrop-blur"
         >
             {{ error }}
-        </div>
-
-        <div
-            v-if="kehadiranError"
-            class="mb-4 p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm rounded-xl backdrop-blur"
-        >
-            {{ kehadiranError }}
         </div>
 
         <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/10 overflow-hidden">

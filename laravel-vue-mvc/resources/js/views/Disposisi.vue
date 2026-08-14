@@ -3,6 +3,8 @@ import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
 import DisposisiForm from '../components/DisposisiForm.vue';
 import DisposisiRejectForm from '../components/DisposisiRejectForm.vue';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 const props = defineProps({
     payload: {
@@ -16,6 +18,8 @@ const emit = defineEmits(['navigate']);
 const user = window.Laravel?.user ?? null;
 const isStaff = user?.role_slug === 'staff';
 const isAsistenDaerah = user?.role_slug === 'asisten_daerah';
+const toast = useToast();
+const { confirm } = useConfirm();
 
 const items = ref([]);
 const loading = ref(false);
@@ -64,29 +68,43 @@ const handleSubmit = async (payload) => {
     try {
         await axios.put(`/api/disposisi/${editingItem.value.id}`, payload);
         showForm.value = false;
+        toast.success('Disposisi berhasil diperbarui.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menyimpan data disposisi.';
+        toast.error('Gagal menyimpan data disposisi.');
     }
 };
 
 const removeItem = async (item) => {
-    if (!confirm(`Hapus disposisi "${item.nomor_surat}"?`)) return;
+    const ok = await confirm({
+        title: 'Hapus Disposisi',
+        message: `Hapus disposisi "${item.nomor_surat}"?`,
+        confirmText: 'Hapus',
+        danger: true,
+    });
+    if (!ok) return;
     try {
         await axios.delete(`/api/disposisi/${item.id}`);
+        toast.success('Disposisi berhasil dihapus.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menghapus disposisi.';
+        toast.error('Gagal menghapus disposisi.');
     }
 };
 
 const approveItem = async (item) => {
-    if (!confirm(`Serahkan disposisi "${item.nomor_surat}"?`)) return;
+    const ok = await confirm({
+        title: 'Serahkan Disposisi',
+        message: `Serahkan disposisi "${item.nomor_surat}"?`,
+        confirmText: 'Serahkan',
+    });
+    if (!ok) return;
     try {
         await axios.patch(`/api/disposisi/${item.id}`, { keterangan: 'diserahkan' });
+        toast.success('Disposisi berhasil diserahkan.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menyerahkan disposisi.';
+        toast.error('Gagal menyerahkan disposisi.');
     }
 };
 
@@ -101,9 +119,10 @@ const handleReject = async (payload) => {
             alasan: payload.alasan,
         });
         rejectingItem.value = null;
+        toast.success('Disposisi berhasil ditolak.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menolak disposisi.';
+        toast.error('Gagal menolak disposisi.');
     }
 };
 

@@ -76,9 +76,11 @@ Data kegiatan dengan kolom:
 - **Realisasi Pelaksanaan**: `Terlaksana` / `Tidak`
 - **Keterangan**: catatan tambahan (opsional)
 - **Status**: `Pelaksanaan` / `Laporan`
-- **Nama Penyusun** & **Tanda Tangan Penyusun**: wajib diisi hanya jika status = `Laporan`
+- **Nama Penyusun**: opsional (kolom `tanda_tangan_penyusun` telah dihapus dari sistem)
 
 Hanya **Staff** yang dapat menambah, mengedit, dan menghapus. Role lain hanya dapat melihat.
+
+**Cek jadwal bentrok**: saat menambah/mengedit kegiatan, sistem memeriksa tanggal dan jam kegiatan. Jika sudah ada kegiatan lain pada tanggal dan jam yang sama, muncul peringatan *"Jadwal bentrok: sudah ada kegiatan pada tanggal dan jam tersebut."* Pemeriksaan dilakukan saat mengetik (frontend) dan divalidasi ulang di server saat disimpan.
 
 **Konfirmasi Kehadiran (OPD)**: hanya role **OPD** yang dapat mengonfirmasi kehadiran per kegiatan melalui tombol **Hadir** / **Tidak Hadir**. Konfirmasi tercatat per akun OPD dan dapat diubah. Role lain melihat rekap jumlah **hadir** dan **tidak hadir** serta dapat membuka **Daftar OPD** untuk melihat siapa saja yang mengonfirmasi hadir/tidak.
 
@@ -86,6 +88,8 @@ Hanya **Staff** yang dapat menambah, mengedit, dan menghapus. Role lain hanya da
 Kelola data surat. Saat surat baru dibuat, sistem otomatis:
 1. Membuat data **Disposisi** (kolom Penerima/Dituju dikosongkan), dan
 2. Menandai disposisi sebagai **Diterima** tanpa perlu diedit.
+
+Setelah surat baru berhasil disimpan, aplikasi otomatis berpindah ke halaman **Disposisi** untuk surat tersebut.
 
 ### Disposisi (Staff)
 Data disposisi yang otomatis dibuat dari Surat. Dapat diedit untuk mengisi **Penerima**, **Dituju**, dan **Keterangan**:
@@ -107,6 +111,14 @@ Kelola pengingat pribadi. Setiap pengguna hanya melihat pengingat miliknya sendi
 
 ### Pengguna (Admin)
 Kelola akun pengguna: tambah, edit (nama, email, role, password), dan hapus. Akun sendiri tidak dapat dihapus.
+
+## Fitur Umum
+
+- **Validasi form saat mengetik**: semua form (Surat, Kegiatan, Pengguna, Pengingat, Disposisi, Tolak Disposisi) memvalidasi kolom wajib secara langsung saat pengguna mengetik. Field yang tidak valid ditandai dengan border merah dan pesan error muncul/berubah secara real-time; form tidak dapat disimpan sebelum semua kolom wajib valid.
+- **Notifikasi hasil aksi (berhasil/gagal)**: semua operasi CRUD menampilkan notifikasi *toast* di pojok kanan atas:
+  - **Berhasil** (hijau): data berhasil ditambahkan / diperbarui / dihapus, termasuk konfirmasi kehadiran, penyerahan, dan penolakan disposisi.
+  - **Gagal** (merah): menampilkan alasan kegagalan saat menyimpan/menghapus data.
+- **Konfirmasi penghapusan**: setiap aksi hapus (Surat, Kegiatan, Pengguna, Disposisi, Pengingat) memunculkan dialog konfirmasi sebelum data benar-benar dihapus. Tombol **Hapus** hanya menjalankan aksi setelah pengguna menekan tombol konfirmasi.
 
 ## Lainnya
 - **Mode Terang/Gelap**: tombol di sidebar atau header.

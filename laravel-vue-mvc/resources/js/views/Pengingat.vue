@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import PengingatForm from '../components/PengingatForm.vue';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 defineProps({
     payload: {
@@ -13,6 +15,8 @@ defineProps({
 const items = ref([]);
 const loading = ref(false);
 const error = ref('');
+const toast = useToast();
+const { confirm } = useConfirm();
 
 const showForm = ref(false);
 const editingItem = ref(null);
@@ -63,23 +67,32 @@ const handleSubmit = async (payload) => {
     try {
         if (editingItem.value) {
             await axios.put(`/api/pengingat/${editingItem.value.id}`, payload);
+            toast.success('Pengingat berhasil diperbarui.');
         } else {
             await axios.post('/api/pengingat', payload);
+            toast.success('Pengingat berhasil ditambahkan.');
         }
         showForm.value = false;
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menyimpan data pengingat.';
+        toast.error('Gagal menyimpan data pengingat.');
     }
 };
 
 const removeItem = async (item) => {
-    if (!confirm(`Hapus pengingat "${item.judul}"?`)) return;
+    const ok = await confirm({
+        title: 'Hapus Pengingat',
+        message: `Hapus pengingat "${item.judul}"?`,
+        confirmText: 'Hapus',
+        danger: true,
+    });
+    if (!ok) return;
     try {
         await axios.delete(`/api/pengingat/${item.id}`);
+        toast.success('Pengingat berhasil dihapus.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menghapus pengingat.';
+        toast.error('Gagal menghapus pengingat.');
     }
 };
 

@@ -2,8 +2,12 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import SuratForm from '../components/SuratForm.vue';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 const emit = defineEmits(['navigate']);
+const toast = useToast();
+const { confirm } = useConfirm();
 
 defineProps({
     payload: {
@@ -59,26 +63,35 @@ const handleSubmit = async (payload) => {
         if (editingItem.value) {
             await axios.put(`/api/surat/${editingItem.value.id}`, payload);
             showForm.value = false;
+            toast.success('Surat berhasil diperbarui.');
             await fetchItems();
         } else {
             const { data } = await axios.post('/api/surat', payload);
             showForm.value = false;
+            toast.success('Surat berhasil ditambahkan.');
             emit('navigate', 'disposisi', {
                 surat_id: data.id,
             });
         }
     } catch (err) {
-        error.value = 'Gagal menyimpan data surat.';
+        toast.error('Gagal menyimpan data surat.');
     }
 };
 
 const removeItem = async (item) => {
-    if (!confirm(`Hapus surat "${item.nomor_surat}"?`)) return;
+    const ok = await confirm({
+        title: 'Hapus Surat',
+        message: `Hapus surat "${item.nomor_surat}"?`,
+        confirmText: 'Hapus',
+        danger: true,
+    });
+    if (!ok) return;
     try {
         await axios.delete(`/api/surat/${item.id}`);
+        toast.success('Surat berhasil dihapus.');
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal menghapus surat.';
+        toast.error('Gagal menghapus surat.');
     }
 };
 

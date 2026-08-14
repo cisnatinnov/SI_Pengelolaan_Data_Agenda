@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, watch } from 'vue';
+import { reactive, ref, onMounted, watch } from 'vue';
+import axios from 'axios';
 import { useFormValidation } from '../composables/useFormValidation';
 
 const props = defineProps({
@@ -10,6 +11,23 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['submit', 'close']);
+
+const existingDates = ref(new Set());
+
+const normalizeDate = (value) => (value ?? '').slice(0, 16).replace('T', ' ');
+
+onMounted(async () => {
+    try {
+        const { data } = await axios.get('/api/kegiatan');
+        existingDates.value = new Set(
+            data
+                .filter((k) => k.id !== props.item?.id)
+                .map((k) => normalizeDate(k.tanggal_kegiatan))
+        );
+    } catch (err) {
+        // Server-side validation still applies.
+    }
+});
 
 const form = reactive({
     nama_kegiatan: '',
@@ -45,7 +63,13 @@ watch(
 const { errors, validateAll, onInput, fieldClass } = useFormValidation({
     nama_kegiatan: () => (form.nama_kegiatan.trim() ? null : 'Nama kegiatan wajib diisi.'),
     tempat_kegiatan: () => (form.tempat_kegiatan.trim() ? null : 'Tempat kegiatan wajib diisi.'),
-    tanggal_kegiatan: () => (form.tanggal_kegiatan ? null : 'Tanggal kegiatan wajib diisi.'),
+    tanggal_kegiatan: () => {
+        if (!form.tanggal_kegiatan) return 'Tanggal kegiatan wajib diisi.';
+        if (existingDates.value.has(normalizeDate(form.tanggal_kegiatan))) {
+            return 'Jadwal bentrok: sudah ada kegiatan pada tanggal dan jam tersebut.';
+        }
+        return null;
+    },
     uraian_kegiatan: () => (form.uraian_kegiatan.trim() ? null : 'Uraian kegiatan wajib diisi.'),
 });
 

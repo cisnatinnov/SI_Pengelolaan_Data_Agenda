@@ -7,7 +7,9 @@ use App\Models\KegiatanKehadiran;
 use App\Models\Pengingat;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class KegiatanController extends Controller
 {
@@ -76,7 +78,7 @@ class KegiatanController extends Controller
      */
     public function update(Request $request, Kegiatan $kegiatan)
     {
-        $data = $this->validateData($request);
+        $data = $this->validateData($request, $kegiatan->id);
 
         $kegiatan->update($data);
 
@@ -98,9 +100,9 @@ class KegiatanController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function validateData(Request $request): array
+    private function validateData(Request $request, ?int $ignoreId = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'nama_kegiatan' => ['required', 'string', 'max:255'],
             'tempat_kegiatan' => ['required', 'string', 'max:255'],
             'tanggal_kegiatan' => ['required', 'date'],
@@ -110,6 +112,20 @@ class KegiatanController extends Controller
             'status' => ['required', 'string', 'in:pelaksanaan,laporan'],
             'nama_penyusun' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $tanggal = Carbon::parse($data['tanggal_kegiatan'])->format('Y-m-d H:i:s');
+
+        $conflict = Kegiatan::where('tanggal_kegiatan', $tanggal)
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->exists();
+
+        if ($conflict) {
+            throw ValidationException::withMessages([
+                'tanggal_kegiatan' => 'Sudah ada kegiatan pada tanggal dan jam tersebut.',
+            ]);
+        }
+
+        return $data;
     }
 
     /**

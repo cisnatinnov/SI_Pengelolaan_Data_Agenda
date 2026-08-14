@@ -9,6 +9,8 @@ import Surat from './views/Surat.vue';
 import Kegiatan from './views/Kegiatan.vue';
 import Pengguna from './views/Pengguna.vue';
 import Pengingat from './views/Pengingat.vue';
+import ToastContainer from './components/ToastContainer.vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
 
 const user = window.Laravel?.user ?? null;
 
@@ -122,5 +124,8 @@ const toggleSidebar = () => {
                 </div>
             </main>
         </div>
+
+        <ToastContainer />
+        <ConfirmDialog />
     </div>
 </template>

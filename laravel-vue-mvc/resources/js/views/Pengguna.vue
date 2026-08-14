@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import PenggunaForm from '../components/PenggunaForm.vue';
+import { useToast } from '../composables/useToast';
+import { useConfirm } from '../composables/useConfirm';
 
 defineProps({
     payload: {
@@ -11,6 +13,8 @@ defineProps({
 });
 
 const currentUser = window.Laravel?.user ?? null;
+const toast = useToast();
+const { confirm } = useConfirm();
 
 const items = ref([]);
 const loading = ref(false);
@@ -54,24 +58,33 @@ const handleSubmit = async (payload) => {
     try {
         if (editingItem.value) {
             await axios.put(`/api/users/${editingItem.value.id}`, payload);
+            toast.success('Pengguna berhasil diperbarui.');
         } else {
             await axios.post('/api/users', payload);
+            toast.success('Pengguna berhasil ditambahkan.');
         }
         showForm.value = false;
         await fetchItems();
     } catch (err) {
-        error.value = err.response?.data?.message ?? 'Gagal menyimpan data pengguna.';
+        toast.error(err.response?.data?.message ?? 'Gagal menyimpan data pengguna.');
     }
 };
 
 const removeItem = async (item) => {
-    if (!confirm(`Hapus pengguna "${item.name}"?`)) return;
+    const ok = await confirm({
+        title: 'Hapus Pengguna',
+        message: `Hapus pengguna "${item.name}"?`,
+        confirmText: 'Hapus',
+        danger: true,
+    });
+    if (!ok) return;
     error.value = '';
     try {
         await axios.delete(`/api/users/${item.id}`);
+        toast.success('Pengguna berhasil dihapus.');
         await fetchItems();
     } catch (err) {
-        error.value = err.response?.data?.message ?? 'Gagal menghapus pengguna.';
+        toast.error(err.response?.data?.message ?? 'Gagal menghapus pengguna.');
     }
 };
 
