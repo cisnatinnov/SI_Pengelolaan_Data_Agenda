@@ -10,6 +10,7 @@ Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, dan Class) untuk s
   1. Membuat **Disposisi** dengan keterangan `diterima` (tanpa perlu diedit), dan
   2. Membuat **Pengingat** untuk seluruh akun **Asisten Daerah**.
 - Saat salah satu role menambah **Kegiatan**, sistem otomatis membuat **Pengingat** untuk **semua role**.
+- Saat menambah **Kegiatan**, sistem otomatis melakukan **Cek Bentrok Jadwal**: jika sudah ada kegiatan lain pada tanggal dan jam yang sama, pembuatan kegiatan ditolak.
 - Hanya **OPD** yang dapat melakukan **Konfirmasi Kehadiran** kegiatan (`hadir` / `tidak`), tercatat per akun OPD. Role lain dapat melihat rekap dan daftar OPD yang mengonfirmasi.
 - **Disposisi** dapat **Diserahkan** atau **Ditolak** (wajib alasan) oleh Asisten Daerah.
 
@@ -50,6 +51,7 @@ flowchart TD
         UC_AUTO_DISP((Auto: Buat Disposisi status Diterima))
         UC_AUTO_NOTIF_ASIST((Auto: Pengingat ke Asisten Daerah))
         UC_AUTO_NOTIF_ALL((Auto: Pengingat ke Semua Role))
+        UC_AUTO_CEK_BENTROK((Auto: Cek Bentrok Jadwal Kegiatan))
     end
 
     subgraph Kegiatan & Kehadiran
@@ -88,6 +90,7 @@ flowchart TD
 
     %% ==== Kegiatan & Kehadiran ====
     Staff --> UC_KEG_CRUD
+    UC_KEG_CRUD -->|<<include>>| UC_AUTO_CEK_BENTROK
     UC_KEG_CRUD -->|<<include>>| UC_AUTO_NOTIF_ALL
 
     OPD --> UC_KONFIRMASI
@@ -153,7 +156,7 @@ sequenceDiagram
     UI-->>Asisten: Status diperbarui
 ```
 
-### 2.3 Staff (atau Role Lain) Menambah Kegiatan → Pengingat Semua Role
+### 2.3 Staff (atau Role Lain) Menambah Kegiatan → Auto Cek Jadwal & Pengingat Semua Role
 
 ```mermaid
 sequenceDiagram
@@ -164,15 +167,20 @@ sequenceDiagram
 
     Staff->>UI: Isi & kirim form Kegiatan
     UI->>API: POST /api/kegiatan
-    API->>DB: Simpan data Kegiatan
 
     rect rgb(230, 240, 255)
         Note over API,DB: Proses otomatis
-        API->>DB: Buat Pengingat untuk SEMUA user (semua role)
+        API->>DB: Cek bentrok jadwal (tanggal & jam yang sama)
+        alt Jadwal bentrok (sudah ada kegiatan lain)
+            API-->>UI: 422 "Jadwal bentrok: sudah ada kegiatan pada tanggal dan jam tersebut."
+            UI-->>Staff: Perlihatkan pesan error
+        else Jadwal tersedia
+            API->>DB: Simpan data Kegiatan
+            API->>DB: Buat Pengingat untuk SEMUA user (semua role)
+            API-->>UI: 201 Kegiatan tersimpan
+            UI-->>Staff: Daftar kegiatan diperbarui
+        end
     end
-
-    API-->>UI: 201 Kegiatan tersimpan
-    UI-->>Staff: Daftar kegiatan diperbarui
 ```
 
 ### 2.4 OPD Konfirmasi Kehadiran Kegiatan
@@ -228,6 +236,20 @@ flowchart TD
     E --> F
     F --> G[Role lain dapat melihat rekap & daftar OPD]
     G --> H([Selesai])
+```
+
+### 3.3 Alur Menambah Kegiatan dengan Auto Cek Bentrok Jadwal
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[Staff menginput data Kegiatan]
+    B --> C[Sistem menyimpan / memproses data]
+    C --> D{Auto: Cek bentrok jadwal<br/>(tanggal & jam yang sama)?}
+    D -- Bentrok --> E[Tolak pembuatan kegiatan<br/>+ pesan "Jadwal bentrok"]
+    D -- Tersedia --> F[Simpan data Kegiatan]
+    F --> G[Auto: Membuat Pengingat ke semua role]
+    G --> H([Selesai])
+    E --> H
 ```
 
 ---

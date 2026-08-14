@@ -80,7 +80,7 @@ Data kegiatan dengan kolom:
 
 Hanya **Staff** yang dapat menambah, mengedit, dan menghapus. Role lain hanya dapat melihat.
 
-**Cek jadwal bentrok**: saat menambah/mengedit kegiatan, sistem memeriksa tanggal dan jam kegiatan. Jika sudah ada kegiatan lain pada tanggal dan jam yang sama, muncul peringatan *"Jadwal bentrok: sudah ada kegiatan pada tanggal dan jam tersebut."* Pemeriksaan dilakukan saat mengetik (frontend) dan divalidasi ulang di server saat disimpan.
+**Cek jadwal bentrok (auto-proses)**: saat menambah kegiatan, sistem otomatis memeriksa tanggal dan jam kegiatan. Jika sudah ada kegiatan lain pada tanggal dan jam yang sama, pembuatan kegiatan ditolak dengan peringatan *"Jadwal bentrok: sudah ada kegiatan pada tanggal dan jam tersebut."* Pemeriksaan dilakukan saat mengetik (frontend) dan divalidasi ulang otomatis di server saat disimpan.
 
 **Konfirmasi Kehadiran (OPD)**: hanya role **OPD** yang dapat mengonfirmasi kehadiran per kegiatan melalui tombol **Hadir** / **Tidak Hadir**. Konfirmasi tercatat per akun OPD dan dapat diubah. Role lain melihat rekap jumlah **hadir** dan **tidak hadir** serta dapat membuka **Daftar OPD** untuk melihat siapa saja yang mengonfirmasi hadir/tidak.
 

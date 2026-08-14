@@ -35,6 +35,9 @@ class KegiatanController extends Controller
         $data = $this->validateData($request);
 
         $kegiatan = DB::transaction(function () use ($data) {
+            // Auto-proses: cek bentrok jadwal sebelum kegiatan dibuat.
+            $this->ensureNoScheduleConflict($data);
+
             $kegiatan = Kegiatan::create($data);
 
             $this->notifyAllRoles($kegiatan);
@@ -78,7 +81,9 @@ class KegiatanController extends Controller
      */
     public function update(Request $request, Kegiatan $kegiatan)
     {
-        $data = $this->validateData($request, $kegiatan->id);
+        $data = $this->validateData($request);
+
+        $this->ensureNoScheduleConflict($data, $kegiatan->id);
 
         $kegiatan->update($data);
 
@@ -100,9 +105,9 @@ class KegiatanController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function validateData(Request $request, ?int $ignoreId = null): array
+    private function validateData(Request $request): array
     {
-        $data = $request->validate([
+        return $request->validate([
             'nama_kegiatan' => ['required', 'string', 'max:255'],
             'tempat_kegiatan' => ['required', 'string', 'max:255'],
             'tanggal_kegiatan' => ['required', 'date'],
@@ -112,7 +117,16 @@ class KegiatanController extends Controller
             'status' => ['required', 'string', 'in:pelaksanaan,laporan'],
             'nama_penyusun' => ['nullable', 'string', 'max:255'],
         ]);
+    }
 
+    /**
+     * Auto-process: reject the kegiatan when another one already occupies
+     * the same date and time (schedule conflict).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function ensureNoScheduleConflict(array $data, ?int $ignoreId = null): void
+    {
         $tanggal = Carbon::parse($data['tanggal_kegiatan'])->format('Y-m-d H:i:s');
 
         $conflict = Kegiatan::where('tanggal_kegiatan', $tanggal)
@@ -124,8 +138,6 @@ class KegiatanController extends Controller
                 'tanggal_kegiatan' => 'Sudah ada kegiatan pada tanggal dan jam tersebut.',
             ]);
         }
-
-        return $data;
     }
 
     /**
