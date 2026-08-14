@@ -117,7 +117,7 @@ const fields = [
                         >
                             <option value="diterima">Diterima</option>
                             <option value="ditolak">Ditolak</option>
-                            <option value="disahkan">Disahkan</option>
+                            <option value="diserahkan">Diserahkan</option>
                         </select>
                     </div>
 

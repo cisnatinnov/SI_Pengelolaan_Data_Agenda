@@ -3,16 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kegiatan;
+use App\Models\KegiatanKehadiran;
+use App\Models\Pengingat;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class KegiatanController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Kegiatan::orderByDesc('tanggal_kegiatan')->get();
+        return Kegiatan::withCount([
+            'kehadiran as hadir_count' => fn ($query) => $query->where('status', 'hadir'),
+        ])->withCount([
+            'kehadiran as tidak_count' => fn ($query) => $query->where('status', 'tidak'),
+        ])->with([
+            'kehadiran' => fn ($query) => $query->where('user_id', $request->user()->id),
+        ])->orderByDesc('tanggal_kegiatan')->get();
     }
 
     /**
@@ -22,9 +32,35 @@ class KegiatanController extends Controller
     {
         $data = $this->validateData($request);
 
-        $kegiatan = Kegiatan::create($data);
+        $kegiatan = DB::transaction(function () use ($data) {
+            $kegiatan = Kegiatan::create($data);
+
+            $this->notifyAllRoles($kegiatan);
+
+            return $kegiatan;
+        });
 
         return response()->json($kegiatan, 201);
+    }
+
+    /**
+     * Confirm attendance (hadir/tidak) for a kegiatan. Only OPD users.
+     */
+    public function konfirmasiKehadiran(Request $request, Kegiatan $kegiatan)
+    {
+        $data = $request->validate([
+            'status' => ['required', 'string', 'in:hadir,tidak'],
+        ]);
+
+        $kehadiran = KegiatanKehadiran::updateOrCreate(
+            [
+                'kegiatan_id' => $kegiatan->id,
+                'user_id' => $request->user()->id,
+            ],
+            ['status' => $data['status']]
+        );
+
+        return response()->json($kehadiran, 200);
     }
 
     /**
@@ -74,5 +110,22 @@ class KegiatanController extends Controller
             'status' => ['required', 'string', 'in:pelaksanaan,laporan'],
             'nama_penyusun' => ['nullable', 'string', 'max:255'],
         ]);
+    }
+
+    /**
+     * Notify every user (all roles) with a pengingat when a kegiatan is added.
+     */
+    private function notifyAllRoles(Kegiatan $kegiatan): void
+    {
+        foreach (User::all() as $user) {
+            Pengingat::create([
+                'user_id' => $user->id,
+                'judul' => "Kegiatan baru: {$kegiatan->nama_kegiatan}",
+                'deskripsi' => "Kegiatan \"{$kegiatan->nama_kegiatan}\" akan dilaksanakan pada {$kegiatan->tanggal_kegiatan} di {$kegiatan->tempat_kegiatan}.",
+                'tanggal_pengingat' => $kegiatan->tanggal_kegiatan,
+                'prioritas' => 'sedang',
+                'status' => 'pending',
+            ]);
+        }
     }
 }

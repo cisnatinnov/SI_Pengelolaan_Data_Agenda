@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Kegiatan extends Model
 {
@@ -22,5 +23,13 @@ class Kegiatan extends Model
         return [
             'tanggal_kegiatan' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the attendance confirmations for this kegiatan.
+     */
+    public function kehadiran(): HasMany
+    {
+        return $this->hasMany(KegiatanKehadiran::class);
     }
 }

@@ -65,7 +65,6 @@ const handleSubmit = async (payload) => {
             showForm.value = false;
             emit('navigate', 'disposisi', {
                 surat_id: data.id,
-                openForm: true,
             });
         }
     } catch (err) {

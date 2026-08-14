@@ -24,12 +24,11 @@ const error = ref('');
 const showForm = ref(false);
 const editingItem = ref(null);
 const rejectingItem = ref(null);
-const autoOpenConsumed = ref(false);
 
 const keteranganLabels = {
     diterima: { text: 'Diterima', class: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300' },
     ditolak: { text: 'Ditolak', class: 'bg-red-500/15 text-red-700 dark:text-red-300' },
-    disahkan: { text: 'Disahkan', class: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    diserahkan: { text: 'Diserahkan', class: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
 };
 
 const formatTanggal = (value) => {
@@ -49,11 +48,6 @@ const fetchItems = async () => {
             : {};
         const { data } = await axios.get('/api/disposisi', { params });
         items.value = data;
-
-        if (props.payload?.openForm && !autoOpenConsumed.value && items.value.length > 0) {
-            autoOpenConsumed.value = true;
-            openEdit(items.value[0]);
-        }
     } catch (err) {
         error.value = 'Gagal memuat data disposisi.';
     } finally {
@@ -87,12 +81,12 @@ const removeItem = async (item) => {
 };
 
 const approveItem = async (item) => {
-    if (!confirm(`Sahkan disposisi "${item.nomor_surat}"?`)) return;
+    if (!confirm(`Serahkan disposisi "${item.nomor_surat}"?`)) return;
     try {
-        await axios.patch(`/api/disposisi/${item.id}`, { keterangan: 'disahkan' });
+        await axios.patch(`/api/disposisi/${item.id}`, { keterangan: 'diserahkan' });
         await fetchItems();
     } catch (err) {
-        error.value = 'Gagal mengesahkan disposisi.';
+        error.value = 'Gagal menyerahkan disposisi.';
     }
 };
 
@@ -116,7 +110,6 @@ const handleReject = async (payload) => {
 watch(
     () => props.payload,
     () => {
-        autoOpenConsumed.value = false;
         fetchItems();
     }
 );
@@ -229,7 +222,7 @@ onMounted(fetchItems);
                                         @click="approveItem(item)"
                                         class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mr-3"
                                     >
-                                        Mengesahkan
+                                        Menyerahkan
                                     </button>
                                     <button
                                         @click="rejectItem(item)"

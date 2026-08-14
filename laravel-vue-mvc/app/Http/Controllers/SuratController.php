@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Disposisi;
+use App\Models\Pengingat;
 use App\Models\Surat;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SuratController extends Controller
 {
@@ -23,9 +26,14 @@ class SuratController extends Controller
     {
         $data = $this->validateData($request);
 
-        $surat = Surat::create($data);
+        $surat = DB::transaction(function () use ($data) {
+            $surat = Surat::create($data);
 
-        $this->insertDisposisi($surat, $data);
+            $this->insertDisposisi($surat, $data);
+            $this->notifyAsistenDaerah($surat);
+
+            return $surat;
+        });
 
         return response()->json($surat, 201);
     }
@@ -100,5 +108,26 @@ class SuratController extends Controller
             'tandatangan_dituju' => null,
             'keterangan' => 'diterima',
         ]);
+    }
+
+    /**
+     * Notify every asisten daerah user with a pengingat when a surat is received.
+     */
+    private function notifyAsistenDaerah(Surat $surat): void
+    {
+        $asistenUsers = User::whereHas('role', function ($query) {
+            $query->where('slug', 'asisten_daerah');
+        })->get();
+
+        foreach ($asistenUsers as $user) {
+            Pengingat::create([
+                'user_id' => $user->id,
+                'judul' => "Surat masuk diterima: {$surat->nomor_surat}",
+                'deskripsi' => "Surat \"{$surat->perihal}\" dari {$surat->asal_surat} telah diterima dan memerlukan tindak lanjut Anda.",
+                'tanggal_pengingat' => $surat->tanggal_pelaksanaan,
+                'prioritas' => 'sedang',
+                'status' => 'pending',
+            ]);
+        }
     }
 }

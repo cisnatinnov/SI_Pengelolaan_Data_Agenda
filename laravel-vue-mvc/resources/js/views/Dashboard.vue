@@ -69,9 +69,9 @@ const fetchStats = async () => {
                 accent: 'from-red-500 to-rose-500',
             },
             {
-                title: 'Disahkan',
-                value: String(count(disposisi, 'keterangan', 'disahkan')),
-                subtitle: 'Disposisi disahkan',
+                title: 'Diserahkan',
+                value: String(count(disposisi, 'keterangan', 'diserahkan')),
+                subtitle: 'Disposisi diserahkan',
                 accent: 'from-emerald-500 to-teal-500',
             },
         ];

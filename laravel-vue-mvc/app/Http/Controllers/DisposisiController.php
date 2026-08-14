@@ -39,7 +39,7 @@ class DisposisiController extends Controller
         // Asisten Daerah can only sahkan (approve) or tolak (reject) the letter.
         if ($user->role_slug === 'asisten_daerah') {
             $data = $request->validate([
-                'keterangan' => ['required', 'string', 'in:disahkan,ditolak'],
+                'keterangan' => ['required', 'string', 'in:diserahkan,ditolak'],
                 'alasan' => ['nullable', 'string', 'max:1000', 'required_if:keterangan,ditolak'],
             ]);
 
@@ -97,7 +97,7 @@ class DisposisiController extends Controller
             'pembawa_surat' => ['required', 'string', 'max:255'],
             'tandatangan_penerima' => ['nullable', 'string', 'max:255'],
             'tandatangan_dituju' => ['nullable', 'string', 'max:255'],
-            'keterangan' => ['required', 'string', 'in:diterima,ditolak,disahkan'],
+            'keterangan' => ['required', 'string', 'in:diterima,ditolak,diserahkan'],
             'alasan' => ['nullable', 'string', 'max:1000', 'required_if:keterangan,ditolak'],
         ]);
     }

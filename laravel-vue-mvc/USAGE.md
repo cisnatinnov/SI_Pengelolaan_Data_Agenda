@@ -1,5 +1,17 @@
 # Panduan Penggunaan — SI Pengelolaan Data Agenda
 
+## install mariadb-server on docker
+docker run -d \
+  --name mariadb-server \
+  -p 3306:3306 \
+  -e MARIADB_ROOT_PASSWORD=your_secure_password \
+  -e MARIADB_DATABASE=my_database \
+  -e MARIADB_USER=my_user \
+  -e MARIADB_PASSWORD=my_user_password \
+  -v mariadb_data:/var/lib/mysql \
+  --restart always \
+  mariadb:latest
+
 ## Menjalankan Aplikasi
 
 1. Jalankan database (Docker):
@@ -44,6 +56,7 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 | Dashboard | ✅ | ✅ | ✅ | ✅ |
 | Kegiatan (menu) | ❌ | ✅ | ✅ | ✅ |
 | Kegiatan — tambah/edit/hapus | ❌ | ✅ | ❌ | ❌ |
+| Kegiatan — konfirmasi kehadiran | ❌ | ❌ | ❌ | ✅ |
 | Surat | ❌ | ✅ | ❌ | ❌ |
 | Disposisi | ❌ | ✅ | ✅ | ❌ |
 | Pengingat | ❌ | ✅ | ✅ | ✅ |
@@ -53,7 +66,7 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 
 ### Dashboard
 Ringkasan statistik yang sama untuk semua role:
-- **Disposisi**: Total, Diterima, Ditolak, Disahkan.
+- **Disposisi**: Total, Diterima, Ditolak, Diserahkan.
 - **Kegiatan**: Total, Dilaksanakan (terlaksana), Tidak Dilaksanakan (tidak terlaksana).
 - **Kegiatan per Periode**: tabel rekap jumlah kegiatan per bulan (Total, Dilaksanakan, Tidak Dilaksanakan).
 
@@ -67,21 +80,23 @@ Data kegiatan dengan kolom:
 
 Hanya **Staff** yang dapat menambah, mengedit, dan menghapus. Role lain hanya dapat melihat.
 
+**Konfirmasi Kehadiran (OPD)**: hanya role **OPD** yang dapat mengonfirmasi kehadiran per kegiatan melalui tombol **Hadir** / **Tidak Hadir**. Konfirmasi tercatat per akun OPD dan dapat diubah. Role lain melihat rekap jumlah **hadir** dan **tidak hadir**.
+
 ### Surat (Staff)
 Kelola data surat. Saat surat baru dibuat, sistem otomatis:
 1. Membuat data **Disposisi** (kolom Penerima/Dituju dikosongkan), dan
-2. Mengarahkan Anda ke form edit Disposisi untuk melengkapi **Penerima** dan **Dituju**.
+2. Menandai disposisi sebagai **Diterima** tanpa perlu diedit.
 
 ### Disposisi (Staff)
 Data disposisi yang otomatis dibuat dari Surat. Dapat diedit untuk mengisi **Penerima**, **Dituju**, dan **Keterangan**:
-- **Diterima** / **Disahkan**: tanpa syarat tambahan
+- **Diterima** / **Diserahkan**: tanpa syarat tambahan
 - **Ditolak**: wajib mengisi **Alasan Ditolak**
 
 Gunakan tombol **Disposisi** pada baris data Surat untuk melompat ke disposisi terkait.
 
 Hak akses Disposisi:
 - **Staff**: dapat mengedit seluruh data disposisi (termasuk keterangan, Penerima, Dituju) dan menghapus.
-- **Asisten Daerah**: dapat melihat disposisi serta **mengesahkan** (disahkan) atau **menolak** (ditolak, wajib alasan) surat. Tidak dapat mengubah data surat lain atau menghapus.
+- **Asisten Daerah**: dapat melihat disposisi serta **menyerahkan** (diserahkan) atau **menolak** (ditolak, wajib alasan) surat. Tidak dapat mengubah data surat lain atau menghapus.
 
 ### Pengingat (Staff, Asisten Daerah, OPD)
 Kelola pengingat pribadi. Setiap pengguna hanya melihat pengingat miliknya sendiri. Kolom:

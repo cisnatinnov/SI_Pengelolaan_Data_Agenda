@@ -12,10 +12,13 @@ defineProps({
 
 const user = window.Laravel?.user ?? null;
 const canManage = user?.role_slug === 'staff';
+const isOpd = user?.role_slug === 'opd';
 
 const items = ref([]);
 const loading = ref(false);
 const error = ref('');
+const confirmingId = ref(null);
+const kehadiranError = ref('');
 
 const showForm = ref(false);
 const editingItem = ref(null);
@@ -85,6 +88,20 @@ const removeItem = async (item) => {
     }
 };
 
+const confirmAttendance = async (item, status) => {
+    if (confirmingId.value) return;
+    confirmingId.value = item.id;
+    kehadiranError.value = '';
+    try {
+        await axios.post(`/api/kegiatan/${item.id}/kehadiran`, { status });
+        await fetchItems();
+    } catch (err) {
+        kehadiranError.value = 'Gagal mengonfirmasi kehadiran.';
+    } finally {
+        confirmingId.value = null;
+    }
+};
+
 onMounted(fetchItems);
 </script>
 
@@ -113,6 +130,13 @@ onMounted(fetchItems);
             {{ error }}
         </div>
 
+        <div
+            v-if="kehadiranError"
+            class="mb-4 p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm rounded-xl backdrop-blur"
+        >
+            {{ kehadiranError }}
+        </div>
+
         <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/10 overflow-hidden">
             <div v-if="loading" class="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 Memuat data...
@@ -136,6 +160,7 @@ onMounted(fetchItems);
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Uraian</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Realisasi</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kehadiran</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penyusun</th>
                             <th v-if="canManage" class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -172,6 +197,35 @@ onMounted(fetchItems);
                                     :class="statusLabels[item.status]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
                                 >
                                     {{ statusLabels[item.status]?.text ?? item.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm">
+                                <template v-if="isOpd">
+                                    <div class="flex items-center gap-2">
+                                        <button
+                                            @click="confirmAttendance(item, 'hadir')"
+                                            :disabled="confirmingId === item.id"
+                                            class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50"
+                                            :class="item.kehadiran?.[0]?.status === 'hadir'
+                                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
+                                                : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-transparent hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-300'"
+                                        >
+                                            Hadir
+                                        </button>
+                                        <button
+                                            @click="confirmAttendance(item, 'tidak')"
+                                            :disabled="confirmingId === item.id"
+                                            class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50"
+                                            :class="item.kehadiran?.[0]?.status === 'tidak'
+                                                ? 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40'
+                                                : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-transparent hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300'"
+                                        >
+                                            Tidak Hadir
+                                        </button>
+                                    </div>
+                                </template>
+                                <span v-else class="text-sm text-slate-500 dark:text-slate-400">
+                                    {{ item.hadir_count }} hadir · {{ item.tidak_count }} tidak
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">

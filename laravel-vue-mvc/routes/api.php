@@ -18,6 +18,10 @@ Route::middleware('auth')->group(function () {
         ->only(['store', 'update', 'destroy'])
         ->middleware('role:staff');
 
+    // Only OPD can confirm kegiatan attendance.
+    Route::post('kegiatan/{kegiatan}/kehadiran', [KegiatanController::class, 'konfirmasiKehadiran'])
+        ->middleware('role:opd');
+
     // Only admin can manage users.
     Route::apiResource('users', UserController::class)->middleware('role:admin');
     Route::get('roles', [RoleController::class, 'index'])->middleware('role:admin');
