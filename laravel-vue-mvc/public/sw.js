@@ -1,6 +1,5 @@
-const CACHE_NAME = 'si-data-agenda-v3';
+const CACHE_NAME = 'si-data-agenda-v4';
 const STATIC_ASSETS = [
-    '/',
     '/manifest.webmanifest',
     '/offline',
 ];
@@ -28,6 +27,14 @@ self.addEventListener('fetch', (event) => {
     // Never cache API responses; always fetch fresh data.
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(fetch(event.request));
+        return;
+    }
+
+    // Never cache HTML documents (they contain per-session CSRF tokens).
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match('/offline'))
+        );
         return;
     }
 

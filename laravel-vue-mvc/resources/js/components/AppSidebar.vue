@@ -69,7 +69,7 @@ const icons = {
 <template>
     <aside
         v-if="!mobile"
-        class="hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-out border-r border-slate-200/70 dark:border-white/10 bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl"
+        class="hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-out border-r border-slate-200/70 dark:border-white/20 bg-white/50 dark:bg-slate-900/80 backdrop-blur-xl"
         :class="collapsed ? 'w-[76px]' : 'w-64'"
     >
         <nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto">

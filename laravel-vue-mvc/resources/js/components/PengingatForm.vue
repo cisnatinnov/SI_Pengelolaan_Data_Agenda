@@ -48,7 +48,7 @@ function submitForm() {
         @click.self="emit('close')"
     >
         <div class="w-full max-w-lg glass dark:glass-dark rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/10">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20">
                 <h3 class="text-lg font-display font-bold gradient-brand-text">
                     {{ item ? 'Edit Pengingat' : 'Tambah Pengingat' }}
                 </h3>
@@ -81,7 +81,7 @@ function submitForm() {
                             id="deskripsi"
                             v-model="form.deskripsi"
                             rows="3"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            class="w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
                         ></textarea>
                     </div>
 
@@ -109,7 +109,7 @@ function submitForm() {
                         <select
                             id="prioritas"
                             v-model="form.prioritas"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            class="w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
                         >
                             <option value="rendah">Rendah</option>
                             <option value="sedang">Sedang</option>
@@ -124,7 +124,7 @@ function submitForm() {
                         <select
                             id="status"
                             v-model="form.status"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            class="w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
                         >
                             <option value="pending">Pending</option>
                             <option value="selesai">Selesai</option>
@@ -132,7 +132,7 @@ function submitForm() {
                     </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">
+                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
                     <button
                         type="button"
                         @click="emit('close')"

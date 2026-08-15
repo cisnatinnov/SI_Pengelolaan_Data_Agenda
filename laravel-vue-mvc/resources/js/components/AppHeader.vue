@@ -1,4 +1,7 @@
 <script setup>
+import { ref } from 'vue';
+import { toggle as toggleTheme } from '../composables/useTheme';
+
 defineProps({
     active: { type: String, default: 'dashboard' },
     sidebarCollapsed: { type: Boolean, default: false },
@@ -6,11 +9,18 @@ defineProps({
 });
 
 defineEmits(['navigate', 'toggle-sidebar', 'logout']);
+
+const dark = ref(document.documentElement.classList.contains('dark'));
+
+const handleToggleTheme = () => {
+    toggleTheme();
+    dark.value = !dark.value;
+};
 </script>
 
 <template>
     <header
-        class="sticky top-0 z-40 glass border-b border-slate-200/70 dark:border-white/10">
+        class="sticky top-0 z-40 glass border-b border-slate-200/70 dark:border-white/20">
         <div class="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
                 <button
@@ -54,6 +64,20 @@ defineEmits(['navigate', 'toggle-sidebar', 'logout']);
                 <span v-if="user" class="hidden sm:block text-sm text-slate-600 dark:text-slate-300">
                     {{ user.name }}
                 </span>
+                <button
+                    class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
+                    @click="handleToggleTheme"
+                    aria-label="Toggle dark mode"
+                    :title="dark ? 'Mode Terang' : 'Mode Gelap'"
+                >
+                    <svg v-if="!dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-5 h-5">
+                        <circle cx="12" cy="12" r="5" />
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-linecap="round" />
+                    </svg>
+                </button>
                 <button
                     class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-100/60 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                     @click="$emit('logout')"

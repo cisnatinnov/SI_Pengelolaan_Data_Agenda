@@ -11,7 +11,7 @@ const { state, confirmAction, cancelAction } = useConfirm();
         @click.self="cancelAction"
     >
         <div class="w-full max-w-sm glass dark:glass-dark rounded-2xl shadow-2xl animate-pop-in">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center gap-3">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20 flex items-center gap-3">
                 <span
                     v-if="state.danger"
                     class="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0"
@@ -33,7 +33,7 @@ const { state, confirmAction, cancelAction } = useConfirm();
                 <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{{ state.message }}</p>
             </div>
 
-            <div class="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">
+            <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
                 <button
                     type="button"
                     @click="cancelAction"

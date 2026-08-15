@@ -44,8 +44,8 @@ export function useFormValidation(rules) {
      */
     const fieldClass = (key) =>
         errors[key]
-            ? 'w-full rounded-xl border border-red-500 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500 focus:ring-1 outline-none dark:text-slate-100'
-            : 'w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800/60 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100';
+            ? 'w-full rounded-xl border border-red-500 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500 focus:ring-1 outline-none dark:text-slate-100'
+            : 'w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100';
 
     return { errors, validateAll, onInput, fieldClass };
 }

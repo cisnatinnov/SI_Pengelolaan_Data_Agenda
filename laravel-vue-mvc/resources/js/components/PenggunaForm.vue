@@ -109,7 +109,7 @@ function submitForm() {
         @click.self="emit('close')"
     >
         <div class="w-full max-w-md glass dark:glass-dark rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/10">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20">
                 <h3 class="text-lg font-display font-bold gradient-brand-text">
                     {{ item ? 'Edit Pengguna' : 'Tambah Pengguna' }}
                 </h3>
@@ -261,7 +261,7 @@ function submitForm() {
                     </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">
+                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
                     <button
                         type="button"
                         @click="emit('close')"

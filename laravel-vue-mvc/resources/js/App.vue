@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import axios from 'axios';
 import AppHeader from './components/AppHeader.vue';
 import AppFooter from './components/AppFooter.vue';
 import AppSidebar from './components/AppSidebar.vue';
@@ -14,19 +15,15 @@ import ConfirmDialog from './components/ConfirmDialog.vue';
 
 const user = window.Laravel?.user ?? null;
 
-const logout = () => {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/logout';
-
-    const token = document.createElement('input');
-    token.type = 'hidden';
-    token.name = '_token';
-    token.value = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-    form.appendChild(token);
-
-    document.body.appendChild(form);
-    form.submit();
+const logout = async () => {
+    try {
+        // axios sends the X-XSRF-TOKEN header from the XSRF-TOKEN cookie,
+        // which is always in sync with the current session.
+        await axios.post('/logout');
+    } catch (err) {
+        // 401/419 means the session is gone; just redirect.
+    }
+    window.location.href = '/login';
 };
 
 const activeView = ref('dashboard');

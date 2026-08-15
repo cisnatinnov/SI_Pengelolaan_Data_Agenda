@@ -163,7 +163,7 @@ onMounted(fetchItems);
             {{ error }}
         </div>
 
-        <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/10 overflow-hidden">
+        <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/20 overflow-hidden">
             <div v-if="loading" class="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 Memuat data...
             </div>
@@ -176,8 +176,8 @@ onMounted(fetchItems);
             </div>
 
             <div v-else class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
-                    <thead class="bg-slate-50/70 dark:bg-white/5">
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-white/20">
+                    <thead class="bg-slate-50/70 dark:bg-white/10">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">No</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tanggal</th>
@@ -191,7 +191,7 @@ onMounted(fetchItems);
                             <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-white/10">
+                    <tbody class="divide-y divide-slate-200 dark:divide-white/20">
                         <tr
                             v-for="(item, index) in items"
                             :key="item.id"

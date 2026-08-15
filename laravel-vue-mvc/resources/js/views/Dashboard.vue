@@ -163,7 +163,7 @@ onMounted(fetchStats);
                 <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Kegiatan per Periode
                 </h3>
-                <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/10 overflow-hidden">
+                <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/20 overflow-hidden">
                     <div
                         v-if="kegiatanPeriode.length === 0"
                         class="p-8 text-center text-sm text-slate-500 dark:text-slate-400"
@@ -171,8 +171,8 @@ onMounted(fetchStats);
                         Belum ada data kegiatan.
                     </div>
                     <div v-else class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
-                            <thead class="bg-slate-50/70 dark:bg-white/5">
+                        <table class="min-w-full divide-y divide-slate-200 dark:divide-white/20">
+                            <thead class="bg-slate-50/70 dark:bg-white/10">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Periode</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</th>
@@ -180,7 +180,7 @@ onMounted(fetchStats);
                                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tidak Dilaksanakan</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-200 dark:divide-white/10">
+                            <tbody class="divide-y divide-slate-200 dark:divide-white/20">
                                 <tr
                                     v-for="periode in kegiatanPeriode"
                                     :key="periode.key"
