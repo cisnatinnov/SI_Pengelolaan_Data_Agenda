@@ -107,11 +107,99 @@ flowchart TD
 
 > Catatan: `<<include>>` menandai proses tambahan yang dijalankan otomatis oleh sistem setelah aksi utama.
 
+### 1.1 Use Case — Login dan Dashboard
+
+Use case berikut memfokuskan pada dua fungsionalitas yang diakses oleh **semua role** (Admin, Staff, Asisten Daerah, OPD): **Login/Logout** dan **Dashboard**.
+
+```mermaid
+flowchart TD
+    %% ==== Aktor ====
+    Admin([Admin])
+    Staff([Staff])
+    Asisten([Asisten Daerah])
+    OPD([OPD])
+
+    subgraph Autentikasi
+        UC_LOGIN[Login]
+        UC_LOGOUT[Logout]
+    end
+
+    subgraph Dashboard
+        UC_DASH[Lihat Dashboard]
+        UC_DASH_DISP[Lihat Statistik Disposisi: Total, Diterima, Ditolak, Diserahkan]
+        UC_DASH_KEG[Lihat Statistik Kegiatan: Total, Terlaksana, Tidak]
+        UC_DASH_PERIODE[Lihat Rekap Kegiatan per Periode]
+    end
+
+    %% ==== Login & Logout semua role ====
+    Admin --> UC_LOGIN
+    Staff --> UC_LOGIN
+    Asisten --> UC_LOGIN
+    OPD --> UC_LOGIN
+
+    Admin --> UC_LOGOUT
+    Staff --> UC_LOGOUT
+    Asisten --> UC_LOGOUT
+    OPD --> UC_LOGOUT
+
+    %% ==== Dashboard semua role ====
+    Admin --> UC_DASH
+    Staff --> UC_DASH
+    Asisten --> UC_DASH
+    OPD --> UC_DASH
+
+    UC_DASH --> UC_DASH_DISP
+    UC_DASH --> UC_DASH_KEG
+    UC_DASH --> UC_DASH_PERIODE
+```
+
 ---
 
 ## 2. Sequence Diagram
 
-### 2.1 Staff Membuat Surat → Auto Disposisi (Diterima) & Pengingat Asisten Daerah
+### 2.1 Login (Autentikasi Pengguna)
+
+```mermaid
+sequenceDiagram
+    actor User as User (Admin / Staff / Asisten / OPD)
+    participant UI as Halaman Login (Blade)
+    participant API as Aplikasi (Laravel)
+    participant DB as Database
+
+    User->>UI: Masukkan email & password
+    UI->>UI: Validasi client-side (format email, wajib isi, meter kekuatan password)
+    User->>API: POST /login (email, password, remember)
+    alt Kredensial benar
+        API->>DB: Verifikasi kredensial (Auth::attempt)
+        DB-->>API: Kredensial cocok
+        API->>API: Regenerasi sesi
+        API-->>UI: 302 redirect ke Dashboard (/)
+        UI-->>User: Dashboard ditampilkan
+    else Kredensial salah
+        API-->>UI: 302 redirect ke /login + pesan "Email atau password salah"
+        UI-->>User: Pesan error ditampilkan
+    end
+```
+
+### 2.2 Dashboard (Melihat Statistik Disposisi & Kegiatan)
+
+```mermaid
+sequenceDiagram
+    actor User as User (semua role)
+    participant UI as Frontend (Vue)
+    participant API as API (Laravel)
+    participant DB as Database
+
+    User->>UI: Buka halaman Dashboard (/)
+    UI->>API: GET /api/disposisi & GET /api/kegiatan
+    API->>DB: Ambil data disposisi & kegiatan
+    DB-->>API: Data disposisi & kegiatan
+    API-->>UI: JSON data disposisi & kegiatan
+    UI->>UI: Hitung statistik (Total, Diterima, Ditolak, Diserahkan, Terlaksana, Tidak)
+    UI-->>User: Kartu statistik & tabel Kegiatan per Periode ditampilkan
+```
+
+### 2.3 Staff Membuat Surat → Auto Disposisi (Diterima) & Pengingat Asisten Daerah
 
 ```mermaid
 sequenceDiagram
@@ -134,7 +222,7 @@ sequenceDiagram
     UI-->>Staff: Navigasi ke Disposisi (status Diterima otomatis)
 ```
 
-### 2.2 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak)
+### 2.4 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak)
 
 ```mermaid
 sequenceDiagram
@@ -156,7 +244,7 @@ sequenceDiagram
     UI-->>Asisten: Status diperbarui
 ```
 
-### 2.3 Staff (atau Role Lain) Menambah Kegiatan → Auto Cek Jadwal & Pengingat Semua Role
+### 2.5 Staff (atau Role Lain) Menambah Kegiatan → Auto Cek Jadwal & Pengingat Semua Role
 
 ```mermaid
 sequenceDiagram
@@ -183,7 +271,7 @@ sequenceDiagram
     end
 ```
 
-### 2.4 OPD Konfirmasi Kehadiran Kegiatan
+### 2.6 OPD Konfirmasi Kehadiran Kegiatan
 
 ```mermaid
 sequenceDiagram
@@ -207,7 +295,40 @@ sequenceDiagram
 
 ## 3. Activity Diagram
 
-### 3.1 Alur Pengelolaan Surat → Disposisi
+### 3.1 Alur Login
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[User membuka halaman /login]
+    B --> C[User mengisi email & password]
+    C --> D[Validasi form client-side]
+    D -- Tidak valid --> E[Tampilkan pesan error per field]
+    E --> C
+    D -- Valid --> F[Kirim POST /login]
+    F --> G{Kredensial valid?}
+    G -- Tidak --> H[Tampilkan pesan Email atau password salah]
+    H --> C
+    G -- Ya --> I[Regenerasi sesi]
+    I --> J[Redirect ke Dashboard /]
+    J --> K([Selesai])
+```
+
+### 3.2 Alur Menampilkan Dashboard
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[User berhasil login]
+    B --> C[Sistem memuat halaman Dashboard /]
+    C --> D[Mengambil data disposisi & kegiatan]
+    D --> E{Data berhasil dimuat?}
+    E -- Tidak --> F[Tampilkan pesan Gagal memuat statistik]
+    E -- Ya --> G[Hitung statistik disposisi & kegiatan]
+    G --> H[Tampilkan kartu statistik]
+    H --> I[Tampilkan tabel Kegiatan per Periode]
+    I --> J([Selesai])
+```
+
+### 3.3 Alur Pengelolaan Surat → Disposisi
 
 ```mermaid
 flowchart TD
@@ -224,7 +345,7 @@ flowchart TD
     J --> K
 ```
 
-### 3.2 Alur Konfirmasi Kehadiran Kegiatan (OPD)
+### 3.4 Alur Konfirmasi Kehadiran Kegiatan (OPD)
 
 ```mermaid
 flowchart TD
@@ -238,7 +359,7 @@ flowchart TD
     G --> H([Selesai])
 ```
 
-### 3.3 Alur Menambah Kegiatan dengan Auto Cek Bentrok Jadwal
+### 3.5 Alur Menambah Kegiatan dengan Auto Cek Bentrok Jadwal
 
 ```mermaid
 flowchart TD
@@ -473,3 +594,87 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | U-11 | Kelola user | Role bukan Admin (staff) | `GET /api/users` | `403` | **Gagal** — tidak memiliki akses |
 | U-12 | Lihat daftar role | Role Admin | `GET /api/roles` | `200` | **Berhasil** — daftar role |
 | U-13 | Lihat daftar role | Role bukan Admin | `GET /api/roles` | `403` | **Gagal** — tidak memiliki akses |
+
+---
+
+## 6. Skenario User Acceptance Test (UAT)
+
+Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang dijalankan oleh pengguna akhir untuk memvalidasi fungsionalitas sistem sesuai kebutuhan. Setiap skenario memuat langkah pengujian dan hasil yang diharapkan; kolom **Hasil Aktual** dan **Status** diisi oleh penguji (pengguna) selama uji penerimaan.
+
+> **Skala Status:** `Lulus` (sesuai harapan) / `Gagal` (tidak sesuai harapan).
+
+### 6.1 Login & Dashboard
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-01 | Membuka halaman login | Buka URL `/login` sebagai pengguna belum login | Form login (email, password, ingat saya) ditampilkan | | |
+| UAT-02 | Login berhasil | Isi email & password akun yang terdaftar, klik **Login** | Redirect ke Dashboard `/`, sesi aktif | | |
+| UAT-03 | Login gagal (kredensial salah) | Isi email/password salah | Pesan **"Email atau password salah"** ditampilkan, tetap di halaman login | | |
+| UAT-04 | Validasi form saat mengetik | Kosongkan email / isi email tidak valid | Error per field ditampilkan real-time, tombol login diblokir | | |
+| UAT-05 | Indikator kekuatan password | Ketik password lemah / kuat pada form login | Meter kekuatan password & daftar aturan muncul secara real-time | | |
+| UAT-06 | Ingat saya | Centang **Ingat saya**, login, tutup browser, buka kembali | Sesi tetap diingat (login otomatis) | | |
+| UAT-07 | Logout | Klik ikon logout di header | Sesi berakhir, redirect ke `/login` | | |
+| UAT-08 | Dashboard tampil | Login dengan role apa pun, buka `/` | Kartu statistik Disposisi & Kegiatan serta tabel **Kegiatan per Periode** tampil | | |
+| UAT-09 | Statistik disposisi akurat | Bandingkan angka Total/Diterima/Ditolak/Diserahkan dengan data | Jumlah sesuai data di halaman Disposisi | | |
+| UAT-10 | Statistik kegiatan akurat | Bandingkan angka Total/Dilaksanakan/Tidak Dilaksanakan dengan data | Jumlah sesuai data di halaman Kegiatan | | |
+| UAT-11 | Akses halaman tanpa login | Buka `/` tanpa autentikasi | Redirect ke `/login` | | |
+
+### 6.2 Kelola Surat (Staff)
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-12 | Lihat daftar surat | Login sebagai **Staff**, buka menu **Surat** | Daftar surat ditampilkan | | |
+| UAT-13 | Tambah surat | Isi form surat (valid), klik **Simpan** | Surat tersimpan, **otomatis** dibuat Disposisi status **Diterima** & Pengingat untuk Asisten Daerah, redirect ke Disposisi | | |
+| UAT-14 | Tambah surat (field wajib kosong) | Kosongkan field wajib | Pesan error validasi ditampilkan, data tidak tersimpan | | |
+| UAT-15 | Ubah surat | Ubah data surat, klik **Simpan** | Data terupdate, toast **berhasil** | | |
+| UAT-16 | Hapus surat | Klik **Hapus**, konfirmasi pada dialog | Data terhapus, toast **berhasil** | | |
+| UAT-17 | Hak akses surat | Login sebagai role **selain Staff**, buka menu Surat | Menu Surat tidak tersedia | | |
+
+### 6.3 Kelola Disposisi (Staff / Asisten Daerah)
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-18 | Lihat daftar disposisi | Login sebagai Staff/Asisten, buka menu **Disposisi** | Daftar disposisi (beserta status & alasan) ditampilkan | | |
+| UAT-19 | Edit disposisi (Staff) | Staff mengubah Penerima/Dituju/Keterangan, klik **Simpan** | Data terupdate | | |
+| UAT-20 | Serahkan disposisi (Asisten) | Asisten klik **Menyerahkan** | Status menjadi **Diserahkan** | | |
+| UAT-21 | Tolak disposisi tanpa alasan | Asisten klik **Menolak** tanpa mengisi alasan | Form menolak (wajib alasan), simpan diblokir dengan error | | |
+| UAT-22 | Tolak disposisi dengan alasan | Asisten klik **Menolak**, isi alasan, simpan | Status menjadi **Ditolak** + alasan tersimpan | | |
+| UAT-23 | Hapus disposisi (Staff) | Staff klik **Hapus**, konfirmasi | Data terhapus | | |
+| UAT-24 | Asisten menghapus disposisi | Asisten mencoba menghapus | Aksi hapus tidak tersedia/ditolak | | |
+
+### 6.4 Kelola Kegiatan & Konfirmasi Kehadiran
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-25 | Lihat daftar kegiatan | Login sebagai Staff/Asisten/OPD, buka menu **Kegiatan** | Daftar kegiatan + rekap hadir/tidak ditampilkan | | |
+| UAT-26 | Tambah kegiatan (jadwal kosong) | Staff isi form kegiatan, klik **Simpan** | Kegiatan tersimpan, **otomatis** dibuat Pengingat untuk semua role | | |
+| UAT-27 | Tambah kegiatan (jadwal bentrok) | Staff isi kegiatan pada tanggal+jam yang sudah ada | Kegiatan **ditolak**, pesan **"Jadwal bentrok"** ditampilkan | | |
+| UAT-28 | Ubah kegiatan | Staff ubah data kegiatan, simpan | Data terupdate; jika bentrok, ditolak | | |
+| UAT-29 | Hapus kegiatan | Staff klik **Hapus**, konfirmasi | Data terhapus | | |
+| UAT-30 | Konfirmasi hadir (OPD) | OPD klik **Hadir** pada kegiatan | Kehadiran tercatat per akun OPD, dapat diubah | | |
+| UAT-31 | Konfirmasi tidak hadir (OPD) | OPD klik **Tidak Hadir** | Status kehadiran diperbarui | | |
+| UAT-32 | Lihat daftar OPD | Staff/Asisten buka **Daftar OPD** pada kegiatan | Daftar OPD yang mengonfirmasi hadir/tidak tampil | | |
+| UAT-33 | Role non-staff menambah kegiatan | OPD/Asisten mencoba tambah kegiatan | Tombol tambah/edit/hapus tidak tersedia | | |
+
+### 6.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-34 | Lihat pengingat milik sendiri | Login, buka menu **Pengingat** | Hanya pengingat milik akun sendiri yang tampil | | |
+| UAT-35 | Tambah pengingat | Isi judul, tanggal, prioritas, klik **Simpan** | Pengingat tersimpan | | |
+| UAT-36 | Ubah pengingat | Ubah data pengingat, simpan | Data terupdate | | |
+| UAT-37 | Hapus pengingat | Klik **Hapus**, konfirmasi | Data terhapus | | |
+| UAT-38 | Pengingat milik user lain | Buka/ubah/hapus pengingat milik user lain | Diperlakukan sebagai tidak ditemukan (ditolak) | | |
+
+### 6.6 Kelola Pengguna (Admin)
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-39 | Lihat daftar pengguna | Login sebagai **Admin**, buka menu **Pengguna** | Daftar pengguna + role ditampilkan | | |
+| UAT-40 | Tambah pengguna | Isi data valid (password kuat), klik **Simpan** | Pengguna tersimpan | | |
+| UAT-41 | Tambah pengguna (email duplikat) | Isi email yang sudah terpakai | Pesan error email duplikat, data tidak tersimpan | | |
+| UAT-42 | Tambah pengguna (password lemah) | Isi password lemah | Error validasi & indikator kekuatan password ditampilkan | | |
+| UAT-43 | Ubah pengguna | Ubah nama/email/role/password, simpan | Data terupdate | | |
+| UAT-44 | Hapus pengguna lain | Hapus akun selain akun sendiri | Data terhapus | | |
+| UAT-45 | Hapus akun sendiri | Coba hapus akun yang sedang login | Ditolak, pesan tidak dapat menghapus akun sendiri | | |
+| UAT-46 | Hak akses pengguna | Login sebagai role selain Admin, buka menu **Pengguna** | Menu Pengguna tidak tersedia | | |
