@@ -347,99 +347,193 @@ sequenceDiagram
 ### 3.1 Alur Login
 
 ```mermaid
-flowchart TD
-    A([Mulai]) --> B[User membuka halaman /login]
-    B --> C[User mengisi email & password]
-    C --> D[Validasi form client-side]
-    D -- Tidak valid --> E[Tampilkan pesan error per field]
-    E --> C
-    D -- Valid --> F[Kirim POST /login]
-    F --> G{Kredensial valid?}
-    G -- Tidak --> H[Tampilkan pesan Email atau password salah]
-    H --> C
-    G -- Ya --> I[Regenerasi sesi]
-    I --> J[Redirect ke Dashboard /]
-    J --> K([Selesai])
+swimlane-beta LR
+  subgraph User
+    A([Mulai])
+    B[Buka halaman /login]
+    C[Isi email & password]
+    D{Validasi form client-side}
+    E[Tampilkan pesan error per field]
+    H[Tampilkan pesan Email atau password salah]
+    K([Selesai])
+  end
+  subgraph Sistem
+    F[Terima POST /login]
+    G{Kredensial valid?}
+    I[Regenerasi sesi]
+    J[Redirect ke Dashboard /]
+  end
+  A --> B
+  B --> C
+  C --> D
+  D -- Tidak valid --> E
+  E --> C
+  D -- Valid --> F
+  F --> G
+  G -- Tidak --> H
+  H --> C
+  G -- Ya --> I
+  I --> J
+  J --> K
 ```
 
 ### 3.2 Alur Menampilkan Dashboard
 
 ```mermaid
-flowchart TD
-    A([Mulai]) --> B[User berhasil login]
-    B --> C[Sistem memuat halaman Dashboard /]
-    C --> D[Mengambil data disposisi & kegiatan]
-    D --> E{Data berhasil dimuat?}
-    E -- Tidak --> F[Tampilkan pesan Gagal memuat statistik]
-    E -- Ya --> G[Hitung statistik disposisi & kegiatan]
-    G --> H[Tampilkan kartu statistik]
-    H --> I[Tampilkan tabel Kegiatan per Periode]
-    I --> J([Selesai])
+swimlane-beta LR
+  subgraph User
+    A([Mulai])
+    B[Login berhasil]
+    C[Buka halaman Dashboard /]
+    F[Tampilkan pesan Gagal memuat statistik]
+    G[Tampilkan kartu statistik]
+    H[Tampilkan tabel Kegiatan per Periode]
+    I([Selesai])
+  end
+  subgraph Sistem
+    D[Muat halaman Dashboard]
+    E[Ambil data disposisi & kegiatan]
+    J{Data berhasil dimuat?}
+    K[Hitung statistik disposisi & kegiatan]
+  end
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> J
+  J -- Tidak --> F
+  F --> I
+  J -- Ya --> K
+  K --> G
+  G --> H
+  H --> I
 ```
 
 ### 3.3 Alur Pengelolaan Surat → Disposisi
 
 ```mermaid
-flowchart TD
-    A([Mulai]) --> B[Staff menginput data Surat]
-    B --> C[Sistem menyimpan Surat]
-    C --> D[Auto: Membuat Disposisi status Diterima]
-    D --> E[Auto: Membuat Pengingat ke Asisten Daerah]
-    E --> F[Asisten Daerah meninjau Disposisi]
-    F --> G{Apakah disetujui?}
-    G -- Ya --> H[Status Disposisi: Diserahkan]
-    G -- Tidak --> I[Asisten Daerah mengisi Alasan Penolakan]
-    I --> J[Status Disposisi: Ditolak + Alasan]
-    H --> K([Selesai])
-    J --> K
+swimlane-beta LR
+  subgraph Staff
+    A([Mulai])
+    B[Input data Surat]
+  end
+  subgraph Sistem
+    C[Simpan Surat]
+    D[Auto: Buat Disposisi status Diterima]
+    E[Auto: Buat Pengingat ke Asisten Daerah]
+    H[Set status Disposisi: Diserahkan]
+    J[Set status Disposisi: Ditolak + Alasan]
+  end
+  subgraph Asisten [Asisten Daerah]
+    F[Tinjau Disposisi]
+    G{Disetujui?}
+    I[Isi alasan penolakan]
+    K([Selesai])
+  end
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> F
+  F --> G
+  G -- Ya --> H
+  G -- Tidak --> I
+  I --> J
+  H --> K
+  J --> K
 ```
 
 ### 3.4 Alur Konfirmasi Kehadiran Kegiatan (OPD)
 
 ```mermaid
-flowchart TD
-    A([Mulai]) --> B[OPD membuka halaman Kegiatan]
-    B --> C{Memilih status kehadiran}
-    C -- Hadir --> D[Kirim konfirmasi hadir]
-    C -- Tidak Hadir --> E[Kirim konfirmasi tidak]
-    D --> F[Sistem menyimpan konfirmasi per OPD]
-    E --> F
-    F --> G[Role lain dapat melihat rekap & daftar OPD]
-    G --> H([Selesai])
+swimlane-beta LR
+  subgraph OPD
+    A([Mulai])
+    B[Buka halaman Kegiatan]
+    C{Memilih status kehadiran}
+    D[Kirim konfirmasi hadir]
+    E[Kirim konfirmasi tidak]
+  end
+  subgraph Sistem
+    F[Simpan konfirmasi per OPD]
+  end
+  subgraph RoleLain [Role Lain]
+    G[Lihat rekap & daftar OPD]
+    H([Selesai])
+  end
+  A --> B
+  B --> C
+  C -- Hadir --> D
+  C -- Tidak Hadir --> E
+  D --> F
+  E --> F
+  F --> G
+  G --> H
 ```
 
 ### 3.5 Alur Menambah Kegiatan dengan Auto Cek Bentrok Jadwal
 
 ```mermaid
-flowchart TD
-    A([Mulai]) --> B[Staff menginput data Kegiatan]
-    B --> D{Auto cek bentrok jadwal}
-    D -- Bentrok pada tanggal dan jam yang sama --> E[Tolak pembuatan kegiatan]
-    E --> E1[Pesan: Jadwal bentrok]
-    D -- Tersedia --> F[Simpan data Kegiatan]
-    F --> G[Auto: Pengingat ke semua role]
-    E1 --> H([Selesai])
-    G --> H
+swimlane-beta LR
+  subgraph Staff
+    A([Mulai])
+    B[Input data Kegiatan]
+    C[Tampilkan pesan: Jadwal bentrok]
+    D([Selesai])
+  end
+  subgraph Sistem
+    E{Auto cek bentrok jadwal}
+    F[Tolak pembuatan kegiatan]
+    G[Simpan data Kegiatan]
+    H[Auto: Pengingat ke semua role]
+  end
+  A --> B
+  B --> E
+  E -- Bentrok pada tanggal dan jam yang sama --> F
+  F --> C
+  E -- Tersedia --> G
+  G --> H
+  C --> D
+  H --> D
 ```
 
 ### 3.6 Alur Notifikasi Pengingat Real-Time
 
 ```mermaid
-flowchart TD
-    A([Mulai]) --> B[User menambah Surat / Kegiatan]
-    B --> C[Sistem menyimpan data]
-    C --> D[Auto: Membuat Pengingat ke user lain]
-    D --> E{Broadcast event PengingatNotification ke Reverb}
-    E -- Berhasil --> F[Laravel Echo user lain menerima event real-time]
-    E -- Gagal / koneksi mati --> F1[Notifikasi tetap dapat dibaca via GET /api/pengingat/notifications saat dibuka]
-    F --> G[Lonceng notifikasi bertambah dengan badge unread]
-    F1 --> G
-    G --> H{User mengklik lonceng / notifikasi}
-    H -- Ya --> I[Membuka halaman Pengingat]
-    I --> J[Sistem menandai notifikasi dibaca read_at]
-    J --> K[Badge unread berkurang]
-    H -- Tidak --> K
-    K --> L([Selesai])
+swimlane-beta LR
+  subgraph User
+    A([Mulai])
+    B[Tambah Surat / Kegiatan]
+  end
+  subgraph Sistem
+    C[Simpan data]
+    D[Auto: Buat Pengingat ke user lain]
+    E{Broadcast event ke Reverb?}
+    J[Tandai notifikasi dibaca read_at]
+  end
+  subgraph UserLain [User Lain]
+    F[Terima event real-time]
+    G[Buka notifikasi via GET saat dibuka]
+    H[Lonceng bertambah dengan badge unread]
+    I{User mengklik lonceng / notifikasi?}
+    K[Membuka halaman Pengingat]
+    L[Badge unread berkurang]
+    M([Selesai])
+  end
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E -- Berhasil --> F
+  E -- Gagal / koneksi mati --> G
+  F --> H
+  G --> H
+  H --> I
+  I -- Ya --> K
+  K --> J
+  J --> L
+  I -- Tidak --> L
+  L --> M
 ```
 
 ---
