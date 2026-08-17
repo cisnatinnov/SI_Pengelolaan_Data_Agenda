@@ -1012,3 +1012,54 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-52 | Baca satu notifikasi | Klik salah satu notifikasi di dropdown | Navigasi ke halaman **Pengingat**, badge unread berkurang satu | | |
 | UAT-53 | Tandai semua dibaca | Klik **Tandai semua dibaca** pada dropdown | Semua notifikasi berstatus dibaca, badge hilang, toast **berhasil** | | |
 | UAT-54 | Hak akses notifikasi | Login sebagai **Admin**, lihat header | Lonceng notifikasi tidak tersedia | | |
+
+## 8. Blackbox Testing
+
+Pengujian blackbox dilakukan terhadap **fungsi sistem** tanpa memperhatikan struktur internal kode. Setiap skenario memetakan **Kebutuhan Fungsional (FR)** ke **Skenario Uji**, **Langkah / Input**, dan **Hasil yang Diharapkan**; kolom **Hasil Aktual** dan **Status** diisi oleh penguji.
+
+> **Skala Status:** `Lulus` (sesuai harapan) / `Gagal` (tidak sesuai harapan).
+
+| ID | Kebutuhan Fungsional | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|----------------------|--------------|-----------------|----------------------|--------------|--------|
+| BB-01 | FR-01 | Login berhasil | Isi email & password valid, klik **Login** | Redirect ke Dashboard `/`, sesi aktif | | |
+| BB-02 | FR-01 | Login gagal (kredensial salah) | Isi email/password salah | Pesan "Email atau password salah", tetap di halaman login | | |
+| BB-03 | FR-01 | Login tanpa input | Kosongkan field email/password | Error validasi per field, login diblokir | | |
+| BB-04 | FR-01 | Logout | Klik ikon logout di header | Sesi berakhir, redirect ke `/login` | | |
+| BB-05 | FR-02 | Dashboard tampil | Login dengan role apa pun, buka `/` | Kartu statistik Disposisi & Kegiatan serta tabel **Kegiatan per Periode** tampil | | |
+| BB-06 | FR-03 | Tambah surat (valid) | Staff isi form surat valid, klik **Simpan** | Surat tersimpan; otomatis dibuat **Disposisi (Diterima)** & **Pengingat** ke Asisten Daerah | | |
+| BB-07 | FR-03 | Tambah surat (field wajib kosong) | Staff kosongkan field wajib | Pesan error validasi, data tidak tersimpan | | |
+| BB-08 | FR-03 | Ubah surat | Staff ubah data surat, klik **Simpan** | Data terupdate, toast **berhasil** | | |
+| BB-09 | FR-03 | Hapus surat | Staff klik **Hapus**, konfirmasi pada dialog | Data terhapus, toast **berhasil** | | |
+| BB-10 | FR-03 | Hak akses surat | Login sebagai role selain Staff, buka menu Surat | Menu Surat tidak tersedia | | |
+| BB-11 | FR-04 | Lihat daftar disposisi | Login sebagai Staff/Asisten, buka menu **Disposisi** | Daftar disposisi (status & alasan) ditampilkan | | |
+| BB-12 | FR-04 | Staff tidak dapat mengubah disposisi | Staff membuka data disposisi | Tombol **Edit**/aksi ubah tidak tersedia untuk Staff | | |
+| BB-13 | FR-05 | Serahkan disposisi | Asisten klik **Menyerahkan**, isi **Penerima** & **Dituju**, simpan | Status menjadi **Diserahkan** + Penerima/Dituju tersimpan + Pengingat otomatis ke Staff | | |
+| BB-14 | FR-05 | Serahkan tanpa Penerima/Dituju | Asisten klik **Menyerahkan** tanpa mengisi Penerima/Dituju | Form menyerahkan (wajib Penerima & Dituju), simpan diblokir | | |
+| BB-15 | FR-06 | Tolak disposisi dengan alasan | Asisten klik **Menolak**, isi alasan, simpan | Status menjadi **Ditolak** + alasan tersimpan + Pengingat otomatis ke Staff | | |
+| BB-16 | FR-06 | Tolak tanpa alasan | Asisten klik **Menolak** tanpa mengisi alasan | Form menolak (wajib alasan), simpan diblokir | | |
+| BB-17 | FR-06 | Tidak ada aksi hapus disposisi | Staff/Asisten mencari tombol **Hapus** pada disposisi | Aksi hapus tidak tersedia untuk semua role | | |
+| BB-18 | FR-07 | Tambah kegiatan (jadwal kosong) | Staff isi form kegiatan valid, klik **Simpan** | Kegiatan tersimpan; otomatis dibuat Pengingat ke semua role | | |
+| BB-19 | FR-07 | Tambah kegiatan (jadwal bentrok) | Staff isi kegiatan pada tanggal+jam yang sama dengan kegiatan lain | Kegiatan ditolak, pesan **"Jadwal bentrok"** ditampilkan | | |
+| BB-20 | FR-07 | Ubah kegiatan | Staff ubah data kegiatan, simpan | Data terupdate; jika bentrok, ditolak | | |
+| BB-21 | FR-07 | Hapus kegiatan | Staff klik **Hapus**, konfirmasi | Data terhapus | | |
+| BB-22 | FR-07 | Hak akses kegiatan | OPD/Asisten mencoba tambah kegiatan | Tombol tambah/edit/hapus tidak tersedia | | |
+| BB-23 | FR-08 | Konfirmasi hadir | OPD klik **Hadir** pada kegiatan | Kehadiran tercatat per akun OPD, dapat diubah | | |
+| BB-24 | FR-08 | Konfirmasi tidak hadir | OPD klik **Tidak Hadir** | Status kehadiran diperbarui | | |
+| BB-25 | FR-08 | Ubah konfirmasi | OPD konfirmasi ulang pada kegiatan yang sama | Record kehadiran di-update | | |
+| BB-26 | FR-08 | Hak akses konfirmasi | Role selain OPD mencoba konfirmasi kehadiran | Aksi konfirmasi tidak tersedia/ditolak | | |
+| BB-27 | FR-09 | Lihat rekap & daftar OPD | Staff/Asisten buka **Daftar OPD** pada kegiatan | Rekap hadir/tidak serta daftar OPD yang mengonfirmasi tampil | | |
+| BB-28 | FR-10 | Tambah pengingat | Isi judul, tanggal, prioritas, klik **Simpan** | Pengingat tersimpan | | |
+| BB-29 | FR-10 | Ubah pengingat | Ubah data pengingat, simpan | Data terupdate | | |
+| BB-30 | FR-10 | Hapus pengingat | Klik **Hapus**, konfirmasi | Data terhapus | | |
+| BB-31 | FR-10 | Pengingat milik user lain | Buka/ubah/hapus pengingat milik user lain | Diperlakukan sebagai tidak ditemukan (ditolak) | | |
+| BB-32 | FR-11 | Notifikasi real-time dari **Tambah Surat** | Staff menambah Surat; periksa akun Asisten Daerah pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
+| BB-33 | FR-11 | Notifikasi real-time dari **Tambah Kegiatan** | Staff menambah Kegiatan; periksa akun lain pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
+| BB-34 | FR-11 | Notifikasi real-time saat **Disposisi diserahkan/ditolak** | Asisten menyerahkan/menolak disposisi; periksa akun Staff pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
+| BB-35 | FR-11 | Tandai notifikasi dibaca | Klik salah satu notifikasi di dropdown | Navigasi ke halaman **Pengingat**, badge unread berkurang satu | | |
+| BB-36 | FR-11 | Tandai semua dibaca | Klik **Tandai semua dibaca** pada dropdown | Semua notifikasi berstatus dibaca, badge hilang | | |
+| BB-37 | FR-11 | Hak akses notifikasi | Login sebagai **Admin**, lihat header | Lonceng notifikasi tidak tersedia | | |
+| BB-38 | FR-12 | Tambah pengguna (valid) | Admin isi data valid (password kuat), klik **Simpan** | Pengguna tersimpan | | |
+| BB-39 | FR-12 | Tambah pengguna (email duplikat) | Isi email yang sudah terpakai | Pesan error email duplikat, data tidak tersimpan | | |
+| BB-40 | FR-12 | Tambah pengguna (password lemah) | Isi password lemah | Error validasi & indikator kekuatan password ditampilkan | | |
+| BB-41 | FR-12 | Hapus akun sendiri | Coba hapus akun yang sedang login | Ditolak, pesan tidak dapat menghapus akun sendiri | | |
+| BB-42 | FR-12 | Hak akses pengguna | Login sebagai role selain Admin, buka menu **Pengguna** | Menu Pengguna tidak tersedia | | |
