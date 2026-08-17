@@ -138,7 +138,10 @@ def main():
         "Saat salah satu role menambah Kegiatan, sistem otomatis membuat Pengingat untuk semua role.",
         "Saat menambah Kegiatan, sistem otomatis melakukan Cek Bentrok Jadwal: jika sudah ada kegiatan lain pada tanggal dan jam yang sama, pembuatan kegiatan ditolak.",
         "Hanya OPD yang dapat melakukan Konfirmasi Kehadiran kegiatan (hadir / tidak), tercatat per akun OPD. Role lain dapat melihat rekap dan daftar OPD yang mengonfirmasi.",
-        "Disposisi dapat Diserahkan atau Ditolak (wajib alasan) oleh Asisten Daerah."
+        "Disposisi dapat Diserahkan atau Ditolak (wajib alasan) oleh Asisten Daerah.",
+        "Lonceng Notifikasi Pengingat tersedia di header untuk role Staff, Asisten Daerah, dan OPD.",
+        "Notifikasi Real-Time (via Laravel Reverb + Laravel Echo) hanya aktif untuk pengingat yang dibuat otomatis dari form Tambah Surat (source = surat) dan Tambah Kegiatan (source = kegiatan). Pengingat yang dibuat manual tidak memicu notifikasi.",
+        "Setiap pengingat otomatis dilengkapi status dibaca / belum dibaca (read_at) dan dapat ditandai dibaca per item atau semuanya."
     ]
 
     for item in sistem_items:
@@ -148,10 +151,10 @@ def main():
     # Aktor table
     add_heading_with_style(doc, "Aktor", 1)
     aktor_data = [
-        ["Admin", "Mengelola pengguna & role."],
-        ["Staff", "Mengelola surat, disposisi, kegiatan, dan pengingat pribadi."],
-        ["Asisten Daerah", "Meninjau disposisi (menyerahkan/menolak) dan mengelola pengingat pribadi."],
-        ["OPD", "Mengonfirmasi kehadiran kegiatan dan mengelola pengingat pribadi."]
+        ["Admin", "Mengelola pengguna & role. Tidak memiliki akses pengingat/notifikasi."],
+        ["Staff", "Mengelola surat, disposisi, kegiatan, dan pengingat pribadi; menerima notifikasi pengingat real-time."],
+        ["Asisten Daerah", "Meninjau disposisi (menyerahkan/menolak), mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time."],
+        ["OPD", "Mengonfirmasi kehadiran kegiatan, mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time."]
     ]
     add_table_from_markdown(doc, aktor_data, header=["Aktor", "Deskripsi"])
 
@@ -197,32 +200,40 @@ def main():
     add_heading_with_style(doc, "2.6 OPD Konfirmasi Kehadiran Kegiatan", 2)
     add_diagram(doc, "08_2_6_opd_konfirmasi_kehadiran_kegiatan.png", "Gambar: Sequence Diagram Konfirmasi Kehadiran")
 
+    # 2.7
+    add_heading_with_style(doc, "2.7 Notifikasi Pengingat Real-Time (Lonceng Notifikasi)", 2)
+    add_diagram(doc, "09_2_7_notifikasi_pengingat_real_time_lonceng_notifikasi.png", "Gambar: Sequence Diagram Notifikasi Pengingat Real-Time")
+
     # Activity Diagrams
     add_heading_with_style(doc, "3. Activity Diagram", 1)
 
     # 3.1 Login
     add_heading_with_style(doc, "3.1 Alur Login", 2)
-    add_diagram(doc, "09_3_1_alur_login.png", "Gambar: Activity Diagram Login")
+    add_diagram(doc, "10_3_1_alur_login.png", "Gambar: Activity Diagram Login")
 
     # 3.2 Dashboard
     add_heading_with_style(doc, "3.2 Alur Menampilkan Dashboard", 2)
-    add_diagram(doc, "10_3_2_alur_menampilkan_dashboard.png", "Gambar: Activity Diagram Dashboard")
+    add_diagram(doc, "11_3_2_alur_menampilkan_dashboard.png", "Gambar: Activity Diagram Dashboard")
 
     # 3.3
     add_heading_with_style(doc, "3.3 Alur Pengelolaan Surat → Disposisi", 2)
-    add_diagram(doc, "11_3_3_alur_pengelolaan_surat_disposisi.png", "Gambar: Activity Diagram Pengelolaan Surat → Disposisi")
+    add_diagram(doc, "12_3_3_alur_pengelolaan_surat_disposisi.png", "Gambar: Activity Diagram Pengelolaan Surat → Disposisi")
 
     # 3.4
     add_heading_with_style(doc, "3.4 Alur Konfirmasi Kehadiran Kegiatan (OPD)", 2)
-    add_diagram(doc, "12_3_4_alur_konfirmasi_kehadiran_kegiatan_opd.png", "Gambar: Activity Diagram Konfirmasi Kehadiran")
+    add_diagram(doc, "13_3_4_alur_konfirmasi_kehadiran_kegiatan_opd.png", "Gambar: Activity Diagram Konfirmasi Kehadiran")
 
     # 3.5
     add_heading_with_style(doc, "3.5 Alur Menambah Kegiatan dengan Auto Cek Bentrok Jadwal", 2)
-    add_diagram(doc, "13_3_5_alur_menambah_kegiatan_dengan_auto_cek_bentrok_jadwal.png", "Gambar: Activity Diagram Menambah Kegiatan")
+    add_diagram(doc, "14_3_5_alur_menambah_kegiatan_dengan_auto_cek_bentrok_jadwal.png", "Gambar: Activity Diagram Menambah Kegiatan")
+
+    # 3.6
+    add_heading_with_style(doc, "3.6 Alur Notifikasi Pengingat Real-Time", 2)
+    add_diagram(doc, "15_3_6_alur_notifikasi_pengingat_real_time.png", "Gambar: Activity Diagram Notifikasi Pengingat Real-Time")
 
     # Class Diagram
     add_heading_with_style(doc, "4. Class Diagram", 1)
-    add_diagram(doc, "14_4_class_diagram.png", "Gambar: Class Diagram")
+    add_diagram(doc, "16_4_class_diagram.png", "Gambar: Class Diagram")
 
     # Add classes description
     add_heading_with_style(doc, "Class Descriptions", 2)
@@ -242,7 +253,10 @@ def main():
         "KegiatanKehadiran": ["id (int)", "kegiatan_id (int)", "user_id (int)", "status (string)",
                               "kegiatan() (method)", "user() (method)"],
         "Pengingat": ["id (int)", "user_id (int)", "judul (string)", "deskripsi (string)",
-                      "tanggal_pengingat (datetime)", "prioritas (string)", "status (string)", "user() (method)"]
+                      "tanggal_pengingat (datetime)", "prioritas (string)", "status (string)",
+                      "source (string: manual|surat|kegiatan)", "read_at (datetime, nullable)",
+                      "user() (method)"],
+        "PengingatNotification": ["pengingat (Pengingat)", "broadcastOn() (method)", "broadcastAs() (method)"]
     }
 
     for class_name, attributes in classes.items():
@@ -259,7 +273,8 @@ def main():
         "User (1) → (0..*) Pengingat : user_id",
         "Surat (1) → (0..*) Disposisi : surat_id",
         "Kegiatan (1) → (0..*) KegiatanKehadiran : kegiatan_id",
-        "User (1) → (0..*) KegiatanKehadiran : user_id"
+        "User (1) → (0..*) KegiatanKehadiran : user_id",
+        "PengingatNotification (1) → (1) Pengingat : pengingat"
     ]
     for rel in relationships:
         p = doc.add_paragraph(rel, style='List Paragraph')
@@ -274,7 +289,9 @@ def main():
         ["Kegiatan.status", "pelaksanaan, laporan"],
         ["KegiatanKehadiran.status", "hadir, tidak"],
         ["Pengingat.prioritas", "rendah, sedang, tinggi"],
-        ["Pengingat.status", "pending, selesai"]
+        ["Pengingat.status", "pending, selesai"],
+        ["Pengingat.source", "manual, surat, kegiatan"],
+        ["Pengingat.read_at", "null (belum dibaca), timestamp (dibaca)"]
     ]
     add_table_from_markdown(doc, enum_data, header=["Atribut", "Nilai"])
 
@@ -364,6 +381,13 @@ def main():
             ["P-09", "Hapus pengingat", "Milik user yang sama", "DELETE /api/pengingat/{id}", "204", "Berhasil — data terhapus"],
             ["P-10", "Hapus pengingat", "Milik user lain", "DELETE /api/pengingat/{id}", "404", "Gagal — tidak ditemukan"],
             ["P-11", "Akses pengingat", "Role Admin", "GET /api/pengingat", "403", "Gagal — admin tidak diperbolehkan"],
+        ]),
+        ("5.8 Notifikasi Pengingat Real-Time", [
+            ["N-01", "Lihat notifikasi", "Terautentikasi", "GET /api/pengingat/notifications", "200", "Berhasil — hanya source = surat/kegiatan + unread_count"],
+            ["N-02", "Tandai notifikasi dibaca", "Milik user yang sama", "POST /api/pengingat/{id}/read", "200", "Berhasil — read_at terisi"],
+            ["N-03", "Tandai notifikasi dibaca", "Milik user lain", "POST /api/pengingat/{id}/read", "404", "Gagal — diperlakukan sebagai tidak ditemukan"],
+            ["N-04", "Tandai semua notifikasi dibaca", "Terautentikasi", "POST /api/pengingat/read-all", "200", "Berhasil — semua read_at terisi"],
+            ["N-05", "Akses notifikasi", "Role Admin", "GET /api/pengingat/notifications", "403", "Gagal — admin tidak diperbolehkan"],
         ]),
         ("5.7 Kelola Pengguna & Role (Admin)", [
             ["U-01", "Lihat daftar user", "Role Admin", "GET /api/users", "200", "Berhasil — daftar user + role"],
@@ -457,6 +481,18 @@ def main():
         ["UAT-44", "Hapus pengguna lain", "Hapus akun selain akun sendiri", "Data terhapus", "", ""],
         ["UAT-45", "Hapus akun sendiri", "Coba hapus akun yang sedang login", "Ditolak, pesan tidak dapat menghapus akun sendiri", "", ""],
         ["UAT-46", "Hak akses pengguna", "Login sebagai role selain Admin, buka menu Pengguna", "Menu Pengguna tidak tersedia", "", ""],
+    ])
+
+    # 6.7
+    add_uat_table(doc, "6.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)", [
+        ["UAT-47", "Lonceng notifikasi tampil", "Login sebagai Staff/Asisten/OPD", "Ikon lonceng Notifikasi Pengingat tampil di header (tidak tampil untuk Admin)", "", ""],
+        ["UAT-48", "Notifikasi real-time dari Tambah Surat", "Staff menambah Surat; periksa akun Asisten Daerah pada tab lain (tanpa refresh)", "Lonceng bertambah real-time dengan badge jumlah belum dibaca", "", ""],
+        ["UAT-49", "Notifikasi real-time dari Tambah Kegiatan", "Staff menambah Kegiatan; periksa akun lain pada tab lain (tanpa refresh)", "Lonceng bertambah real-time dengan badge jumlah belum dibaca", "", ""],
+        ["UAT-50", "Pengingat manual tidak memicu notifikasi", "User menambah Pengingat manual pada halaman Pengingat", "Tidak ada lonceng/badge baru (sumber manual tidak dinotifikasikan)", "", ""],
+        ["UAT-51", "Buka daftar notifikasi", "Klik lonceng notifikasi", "Dropdown berisi daftar notifikasi (label Surat/Kegiatan, waktu relatif, tanggal pengingat)", "", ""],
+        ["UAT-52", "Baca satu notifikasi", "Klik salah satu notifikasi di dropdown", "Navigasi ke halaman Pengingat, badge unread berkurang satu", "", ""],
+        ["UAT-53", "Tandai semua dibaca", "Klik Tandai semua dibaca pada dropdown", "Semua notifikasi berstatus dibaca, badge hilang, toast berhasil", "", ""],
+        ["UAT-54", "Hak akses notifikasi", "Login sebagai Admin, lihat header", "Lonceng notifikasi tidak tersedia", "", ""],
     ])
 
     # Save the standalone UML documentation document.

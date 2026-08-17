@@ -25,6 +25,7 @@ class PengingatFactory extends Factory
             'tanggal_pengingat' => fake()->dateTimeBetween('+1 day', '+30 days'),
             'prioritas' => 'sedang',
             'status' => 'pending',
+            'source' => 'manual',
         ];
     }
 }

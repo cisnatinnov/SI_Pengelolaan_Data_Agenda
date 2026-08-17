@@ -22,6 +22,8 @@ class Pengingat extends Model
         'tanggal_pengingat',
         'prioritas',
         'status',
+        'source',
+        'read_at',
     ];
 
     /**
@@ -33,7 +35,25 @@ class Pengingat extends Model
     {
         return [
             'tanggal_pengingat' => 'datetime',
+            'read_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope the query to only notification-type pengingat
+     * (auto-generated from surat or kegiatan, not manual).
+     */
+    public function scopeNotifications($query)
+    {
+        return $query->where('source', '!=', 'manual');
+    }
+
+    /**
+     * Scope the query to only unread notification-type pengingat.
+     */
+    public function scopeUnread($query)
+    {
+        return $query->notifications()->whereNull('read_at');
     }
 
     /**

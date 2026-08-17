@@ -27,5 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::get('roles', [RoleController::class, 'index'])->middleware('role:admin');
 
     // All roles except admin can manage their own pengingat.
-    Route::apiResource('pengingat', PengingatController::class)->middleware('not-role:admin');
+    Route::middleware('not-role:admin')->group(function () {
+        Route::get('pengingat/notifications', [PengingatController::class, 'notifications']);
+        Route::post('pengingat/{pengingat}/read', [PengingatController::class, 'markAsRead']);
+        Route::post('pengingat/read-all', [PengingatController::class, 'markAllAsRead']);
+        Route::apiResource('pengingat', PengingatController::class);
+    });
 });

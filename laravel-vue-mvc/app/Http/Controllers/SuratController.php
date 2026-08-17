@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PengingatNotification;
 use App\Models\Disposisi;
 use App\Models\Pengingat;
 use App\Models\Surat;
@@ -120,14 +121,17 @@ class SuratController extends Controller
         })->get();
 
         foreach ($asistenUsers as $user) {
-            Pengingat::create([
+            $pengingat = Pengingat::create([
                 'user_id' => $user->id,
                 'judul' => "Surat masuk diterima: {$surat->nomor_surat}",
                 'deskripsi' => "Surat \"{$surat->perihal}\" dari {$surat->asal_surat} telah diterima dan memerlukan tindak lanjut Anda.",
                 'tanggal_pengingat' => $surat->tanggal_pelaksanaan,
                 'prioritas' => 'sedang',
                 'status' => 'pending',
+                'source' => 'surat',
             ]);
+
+            broadcast(new PengingatNotification($pengingat));
         }
     }
 }

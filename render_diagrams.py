@@ -33,6 +33,11 @@ def slugify(heading, index):
     return f"{index:02d}_{base}"
 
 
+def safe_ascii(value, limit=50):
+    """Sanitize console output so non-ASCII chars (e.g. arrows) never break printing."""
+    return value[:limit].encode("ascii", "replace").decode("ascii")
+
+
 def fetch_png(code: str, out_file: Path) -> bool:
     payload = json.dumps({"code": code, "mermaid": {"theme": THEME}}).encode("utf-8")
     encoded = base64.urlsafe_b64encode(payload).decode("ascii")
@@ -73,11 +78,11 @@ def main():
         out = OUT_DIR / f"{name}.png"
         try:
             ok = fetch_png(code, out)
-            print(f"[{'OK ' if ok else 'FAIL'}] {name}  ({heading[:50]})")
+            print(f"[{'OK ' if ok else 'FAIL'}] {name}  ({safe_ascii(heading)})")
             if not ok:
                 sys.exit(1)
         except Exception as exc:  # noqa: BLE001
-            print(f"[FAIL] {name}  ({heading[:50]})  -> {exc}")
+            print(f"[FAIL] {name}  ({safe_ascii(heading)})  -> {safe_ascii(str(exc), 120)}")
             return 1
 
     print(f"\nRendered {index} diagrams into {OUT_DIR}")

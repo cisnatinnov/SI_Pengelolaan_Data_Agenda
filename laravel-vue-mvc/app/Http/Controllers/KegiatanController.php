@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PengingatNotification;
 use App\Models\Kegiatan;
 use App\Models\KegiatanKehadiran;
 use App\Models\Pengingat;
@@ -146,14 +147,17 @@ class KegiatanController extends Controller
     private function notifyAllRoles(Kegiatan $kegiatan): void
     {
         foreach (User::all() as $user) {
-            Pengingat::create([
+            $pengingat = Pengingat::create([
                 'user_id' => $user->id,
                 'judul' => "Kegiatan baru: {$kegiatan->nama_kegiatan}",
                 'deskripsi' => "Kegiatan \"{$kegiatan->nama_kegiatan}\" akan dilaksanakan pada {$kegiatan->tanggal_kegiatan} di {$kegiatan->tempat_kegiatan}.",
                 'tanggal_pengingat' => $kegiatan->tanggal_kegiatan,
                 'prioritas' => 'sedang',
                 'status' => 'pending',
+                'source' => 'kegiatan',
             ]);
+
+            broadcast(new PengingatNotification($pengingat));
         }
     }
 }

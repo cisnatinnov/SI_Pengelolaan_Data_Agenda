@@ -25,9 +25,59 @@ class PengingatController extends Controller
     {
         $data = $this->validateData($request);
 
-        $pengingat = $request->user()->pengingats()->create($data);
+        $pengingat = $request->user()->pengingats()->create($data + ['source' => 'manual']);
 
         return response()->json($pengingat, 201);
+    }
+
+    /**
+     * Display the current user's notifications.
+     * Only pengingat auto-generated from surat/kegiatan are listed.
+     */
+    public function notifications(Request $request)
+    {
+        $notifications = $request->user()
+            ->pengingats()
+            ->notifications()
+            ->orderByDesc('created_at')
+            ->get();
+
+        $unreadCount = $request->user()
+            ->pengingats()
+            ->unread()
+            ->count();
+
+        return response()->json([
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    /**
+     * Mark a notification as read.
+     */
+    public function markAsRead(Request $request, Pengingat $pengingat)
+    {
+        abort_unless($pengingat->user_id === $request->user()->id, 404);
+
+        if ($pengingat->read_at === null) {
+            $pengingat->update(['read_at' => now()]);
+        }
+
+        return $pengingat;
+    }
+
+    /**
+     * Mark all of the current user's notifications as read.
+     */
+    public function markAllAsRead(Request $request)
+    {
+        $request->user()
+            ->pengingats()
+            ->unread()
+            ->update(['read_at' => now()]);
+
+        return response()->json(['message' => 'Semua notifikasi telah dibaca.']);
     }
 
     /**

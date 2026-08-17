@@ -13,15 +13,18 @@ Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, dan Class) untuk s
 - Saat menambah **Kegiatan**, sistem otomatis melakukan **Cek Bentrok Jadwal**: jika sudah ada kegiatan lain pada tanggal dan jam yang sama, pembuatan kegiatan ditolak.
 - Hanya **OPD** yang dapat melakukan **Konfirmasi Kehadiran** kegiatan (`hadir` / `tidak`), tercatat per akun OPD. Role lain dapat melihat rekap dan daftar OPD yang mengonfirmasi.
 - **Disposisi** dapat **Diserahkan** atau **Ditolak** (wajib alasan) oleh Asisten Daerah.
+- **Lonceng Notifikasi Pengingat** tersedia di header untuk role Staff, Asisten Daerah, dan OPD.
+- Notifikasi **Real-Time** (via **Laravel Reverb** + **Laravel Echo**) hanya aktif untuk pengingat yang dibuat otomatis dari form **Tambah Surat** (`source = surat`) dan **Tambah Kegiatan** (`source = kegiatan`). Pengingat yang dibuat manual tidak memicu notifikasi.
+- Setiap pengingat otomatis dilengkapi status **dibaca / belum dibaca** (`read_at`) dan dapat ditandai dibaca per item atau semuanya.
 
 ## Aktor
 
 | Aktor | Deskripsi |
 |-------|-----------|
-| **Admin** | Mengelola pengguna & role. |
-| **Staff** | Mengelola surat, disposisi, kegiatan, dan pengingat pribadi. |
-| **Asisten Daerah** | Meninjau disposisi (menyerahkan/menolak) dan mengelola pengingat pribadi. |
-| **OPD** | Mengonfirmasi kehadiran kegiatan dan mengelola pengingat pribadi. |
+| **Admin** | Mengelola pengguna & role. Tidak memiliki akses pengingat/notifikasi. |
+| **Staff** | Mengelola surat, disposisi, kegiatan, dan pengingat pribadi; menerima notifikasi pengingat real-time. |
+| **Asisten Daerah** | Meninjau disposisi (menyerahkan/menolak), mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time. |
+| **OPD** | Mengonfirmasi kehadiran kegiatan, mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time. |
 
 ---
 
@@ -52,6 +55,7 @@ flowchart TD
         UC_AUTO_NOTIF_ASIST((Auto: Pengingat ke Asisten Daerah))
         UC_AUTO_NOTIF_ALL((Auto: Pengingat ke Semua Role))
         UC_AUTO_CEK_BENTROK((Auto: Cek Bentrok Jadwal Kegiatan))
+        UC_AUTO_BROADCAST((Auto: Broadcast Notifikasi Real-Time))
     end
 
     subgraph Kegiatan & Kehadiran
@@ -62,6 +66,7 @@ flowchart TD
 
     subgraph Pengingat
         UC_PENGINGAT[Kelola Pengingat Pribadi]
+        UC_NOTIF[Lihat & Tandai Notifikasi Pengingat Real-Time]
     end
 
     subgraph Pengguna
@@ -83,6 +88,7 @@ flowchart TD
     Staff --> UC_SURAT
     UC_SURAT -->|<<include>>| UC_AUTO_DISP
     UC_SURAT -->|<<include>>| UC_AUTO_NOTIF_ASIST
+    UC_AUTO_NOTIF_ASIST -->|<<include>>| UC_AUTO_BROADCAST
 
     Staff --> UC_DISP_EDIT
     Asisten --> UC_DISP_SERAH
@@ -92,6 +98,7 @@ flowchart TD
     Staff --> UC_KEG_CRUD
     UC_KEG_CRUD -->|<<include>>| UC_AUTO_CEK_BENTROK
     UC_KEG_CRUD -->|<<include>>| UC_AUTO_NOTIF_ALL
+    UC_AUTO_NOTIF_ALL -->|<<include>>| UC_AUTO_BROADCAST
 
     OPD --> UC_KONFIRMASI
     Staff --> UC_LIHAT_KEHADIRAN
@@ -101,6 +108,10 @@ flowchart TD
     Staff --> UC_PENGINGAT
     Asisten --> UC_PENGINGAT
     OPD --> UC_PENGINGAT
+
+    Staff --> UC_NOTIF
+    Asisten --> UC_NOTIF
+    OPD --> UC_NOTIF
 
     Admin --> UC_USER
 ```
@@ -207,6 +218,7 @@ sequenceDiagram
     participant UI as Frontend (Vue)
     participant API as API (Laravel)
     participant DB as Database
+    participant WS as Reverb (WebSocket)
 
     Staff->>UI: Isi & kirim form Surat
     UI->>API: POST /api/surat
@@ -215,7 +227,9 @@ sequenceDiagram
     rect rgb(230, 240, 255)
         Note over API,DB: Proses otomatis
         API->>DB: Buat Disposisi (keterangan = "diterima")
-        API->>DB: Buat Pengingat untuk semua user Asisten Daerah
+        API->>DB: Buat Pengingat untuk semua user Asisten Daerah (source = "surat")
+        API->>WS: broadcast PengingatNotification
+        WS-->>UI: Event notifikasi ke channel user Asisten Daerah
     end
 
     API-->>UI: 201 Surat tersimpan
@@ -252,6 +266,7 @@ sequenceDiagram
     participant UI as Frontend (Vue)
     participant API as API (Laravel)
     participant DB as Database
+    participant WS as Reverb (WebSocket)
 
     Staff->>UI: Isi dan kirim form Kegiatan
     UI->>API: POST /api/kegiatan
@@ -264,7 +279,9 @@ sequenceDiagram
             UI-->>Staff: Perlihatkan pesan error
         else Jadwal tersedia
             API->>DB: Simpan data Kegiatan
-            API->>DB: Buat Pengingat untuk SEMUA user (semua role)
+            API->>DB: Buat Pengingat untuk SEMUA user (source = "kegiatan")
+            API->>WS: broadcast PengingatNotification
+            WS-->>UI: Event notifikasi ke channel masing-masing user
             API-->>UI: 201 Kegiatan tersimpan
             UI-->>Staff: Daftar kegiatan diperbarui
         end
@@ -289,6 +306,38 @@ sequenceDiagram
     UI-->>OPD: Status kehadiran diperbarui
 
     Note over UI: Staff / Asisten melihat rekap & daftar OPD<br/>(hadir_count, tidak_count, nama OPD)
+```
+
+### 2.7 Notifikasi Pengingat Real-Time (Lonceng Notifikasi)
+
+```mermaid
+sequenceDiagram
+    actor Sender as User (Staff)
+    actor Recipient as User Lain (Asisten / OPD / Staff)
+    participant UI_A as Frontend Sender (Vue)
+    participant API as API (Laravel)
+    participant DB as Database
+    participant WS as Reverb (WebSocket)
+    participant UI_B as Frontend Recipient (Vue)
+
+    Sender->>UI_A: Tambah Surat / Kegiatan
+    UI_A->>API: POST /api/surat | POST /api/kegiatan
+    API->>DB: Simpan data + buat Pengingat otomatis (source = "surat"/"kegiatan")
+    API->>WS: broadcast(PengingatNotification)
+    WS->>WS: Kirim ke private channel App.Models.User.{id}
+    WS-->>UI_B: Event 'pengingat.notification'
+
+    rect rgb(240, 255, 240)
+        Note over UI_B,Recipient: Real-time (tanpa refresh)
+        UI_B->>API: GET /api/pengingat/notifications
+        API-->>UI_B: Daftar notifikasi + unread_count
+        UI_B-->>Recipient: Badge lonceng bertambah (unread)
+        Recipient->>UI_B: Klik lonceng / notifikasi
+        UI_B->>API: POST /api/pengingat/{id}/read
+        API->>DB: Set read_at
+        API-->>UI_B: 200 (sudah dibaca)
+        UI_B-->>Recipient: Badge unread berkurang
+    end
 ```
 
 ---
@@ -371,6 +420,26 @@ flowchart TD
     F --> G[Auto: Pengingat ke semua role]
     E1 --> H([Selesai])
     G --> H
+```
+
+### 3.6 Alur Notifikasi Pengingat Real-Time
+
+```mermaid
+flowchart TD
+    A([Mulai]) --> B[User menambah Surat / Kegiatan]
+    B --> C[Sistem menyimpan data]
+    C --> D[Auto: Membuat Pengingat ke user lain]
+    D --> E{Broadcast event PengingatNotification ke Reverb}
+    E -- Berhasil --> F[Laravel Echo user lain menerima event real-time]
+    E -- Gagal / koneksi mati --> F1[Notifikasi tetap dapat dibaca via GET /api/pengingat/notifications saat dibuka]
+    F --> G[Lonceng notifikasi bertambah dengan badge unread]
+    F1 --> G
+    G --> H{User mengklik lonceng / notifikasi}
+    H -- Ya --> I[Membuka halaman Pengingat]
+    I --> J[Sistem menandai notifikasi dibaca read_at]
+    J --> K[Badge unread berkurang]
+    H -- Tidak --> K
+    K --> L([Selesai])
 ```
 
 ---
@@ -456,7 +525,15 @@ classDiagram
         +datetime tanggal_pengingat
         +string prioritas
         +string status
+        +string source
+        +datetime read_at
         +user()
+    }
+
+    class PengingatNotification {
+        +Pengingat pengingat
+        +broadcastOn()
+        +broadcastAs()
     }
 
     Role "1" <-- "0..*" User : role_id
@@ -464,6 +541,7 @@ classDiagram
     Surat "1" <-- "0..*" Disposisi : surat_id
     Kegiatan "1" <-- "0..*" KegiatanKehadiran : kegiatan_id
     User "1" <-- "0..*" KegiatanKehadiran : user_id
+    PengingatNotification "1" --> "1" Pengingat : pengingat
 ```
 
 ### Nilai Enum / Status
@@ -476,6 +554,8 @@ classDiagram
 | `KegiatanKehadiran.status` | `hadir`, `tidak` |
 | `Pengingat.prioritas` | `rendah`, `sedang`, `tinggi` |
 | `Pengingat.status` | `pending`, `selesai` |
+| `Pengingat.source` | `manual`, `surat`, `kegiatan` |
+| `Pengingat.read_at` | `null` (belum dibaca), timestamp (dibaca) |
 
 ---
 
@@ -576,6 +656,16 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | P-09 | Hapus pengingat | Milik user yang sama | `DELETE /api/pengingat/{id}` | `204` | **Berhasil** — data terhapus |
 | P-10 | Hapus pengingat | Milik user lain | `DELETE /api/pengingat/{id}` | `404` | **Gagal** — diperlakukan sebagai tidak ditemukan |
 | P-11 | Akses pengingat | Role Admin | `GET /api/pengingat` | `403` | **Gagal** — admin tidak diperbolehkan |
+
+### 5.8 Notifikasi Pengingat Real-Time
+
+| ID | Skenario Uji | Kondisi | Endpoint | Status | Hasil |
+|----|--------------|---------|----------|--------|-------|
+| N-01 | Lihat notifikasi | Terautentikasi | `GET /api/pengingat/notifications` | `200` | **Berhasil** — hanya `source = surat/kegiatan` + `unread_count` |
+| N-02 | Tandai notifikasi dibaca | Milik user yang sama | `POST /api/pengingat/{id}/read` | `200` | **Berhasil** — `read_at` terisi |
+| N-03 | Tandai notifikasi dibaca | Milik user lain | `POST /api/pengingat/{id}/read` | `404` | **Gagal** — diperlakukan sebagai tidak ditemukan |
+| N-04 | Tandai semua notifikasi dibaca | Terautentikasi | `POST /api/pengingat/read-all` | `200` | **Berhasil** — semua `read_at` terisi |
+| N-05 | Akses notifikasi | Role Admin | `GET /api/pengingat/notifications` | `403` | **Gagal** — admin tidak diperbolehkan |
 
 ### 5.7 Kelola Pengguna & Role (Admin)
 
@@ -678,3 +768,16 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-44 | Hapus pengguna lain | Hapus akun selain akun sendiri | Data terhapus | | |
 | UAT-45 | Hapus akun sendiri | Coba hapus akun yang sedang login | Ditolak, pesan tidak dapat menghapus akun sendiri | | |
 | UAT-46 | Hak akses pengguna | Login sebagai role selain Admin, buka menu **Pengguna** | Menu Pengguna tidak tersedia | | |
+
+### 6.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)
+
+| ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
+|----|--------------|-----------------|----------------------|--------------|--------|
+| UAT-47 | Lonceng notifikasi tampil | Login sebagai Staff/Asisten/OPD | Ikon lonceng **Notifikasi Pengingat** tampil di header (tidak tampil untuk Admin) | | |
+| UAT-48 | Notifikasi real-time dari **Tambah Surat** | Staff menambah Surat; periksa akun **Asisten Daerah** pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
+| UAT-49 | Notifikasi real-time dari **Tambah Kegiatan** | Staff menambah Kegiatan; periksa akun lain pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
+| UAT-50 | Pengingat manual tidak memicu notifikasi | User menambah Pengingat manual pada halaman Pengingat | Tidak ada lonceng/badge baru (sumber `manual` tidak dinotifikasikan) | | |
+| UAT-51 | Buka daftar notifikasi | Klik lonceng notifikasi | Dropdown berisi daftar notifikasi (label **Surat/Kegiatan**, waktu relatif, tanggal pengingat) | | |
+| UAT-52 | Baca satu notifikasi | Klik salah satu notifikasi di dropdown | Navigasi ke halaman **Pengingat**, badge unread berkurang satu | | |
+| UAT-53 | Tandai semua dibaca | Klik **Tandai semua dibaca** pada dropdown | Semua notifikasi berstatus dibaca, badge hilang, toast **berhasil** | | |
+| UAT-54 | Hak akses notifikasi | Login sebagai **Admin**, lihat header | Lonceng notifikasi tidak tersedia | | |

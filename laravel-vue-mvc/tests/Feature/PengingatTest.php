@@ -203,4 +203,156 @@ class PengingatTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    /**
+     * GET /api/pengingat/notifications — only auto-generated (surat/kegiatan) pengingat are returned.
+     */
+    public function test_notifications_returns_only_auto_generated_pengingat(): void
+    {
+        $user = $this->actingAsRole('staff');
+
+        Pengingat::create([
+            'user_id' => $user->id,
+            'judul' => 'Surat masuk diterima: 001',
+            'tanggal_pengingat' => '2026-08-20 08:00:00',
+            'prioritas' => 'sedang',
+            'status' => 'pending',
+            'source' => 'surat',
+        ]);
+        Pengingat::create([
+            'user_id' => $user->id,
+            'judul' => 'Kegiatan baru: Rapat',
+            'tanggal_pengingat' => '2026-08-20 09:00:00',
+            'prioritas' => 'sedang',
+            'status' => 'pending',
+            'source' => 'kegiatan',
+        ]);
+        $this->makePengingat($user);
+
+        $response = $this->getJson('/api/pengingat/notifications');
+
+        $response->assertOk();
+        $response->assertJsonPath('unread_count', 2);
+        $this->assertCount(2, $response->json('notifications'));
+        foreach ($response->json('notifications') as $notification) {
+            $this->assertNotEquals('manual', $notification['source']);
+        }
+    }
+
+    /**
+     * GET /api/pengingat/notifications — reads are not counted as unread.
+     */
+    public function test_notifications_tracks_read_state(): void
+    {
+        $user = $this->actingAsRole('staff');
+
+        Pengingat::create([
+            'user_id' => $user->id,
+            'judul' => 'Surat masuk diterima: 001',
+            'tanggal_pengingat' => '2026-08-20 08:00:00',
+            'prioritas' => 'sedang',
+            'status' => 'pending',
+            'source' => 'surat',
+            'read_at' => now(),
+        ]);
+        Pengingat::create([
+            'user_id' => $user->id,
+            'judul' => 'Kegiatan baru: Rapat',
+            'tanggal_pengingat' => '2026-08-20 09:00:00',
+            'prioritas' => 'sedang',
+            'status' => 'pending',
+            'source' => 'kegiatan',
+        ]);
+
+        $response = $this->getJson('/api/pengingat/notifications');
+
+        $response->assertOk();
+        $response->assertJsonPath('unread_count', 1);
+        $this->assertCount(2, $response->json('notifications'));
+    }
+
+    /**
+     * POST /api/pengingat/{id}/read — marks the user's notification as read (200).
+     */
+    public function test_user_can_mark_own_notification_as_read(): void
+    {
+        $user = $this->actingAsRole('staff');
+        $pengingat = Pengingat::create([
+            'user_id' => $user->id,
+            'judul' => 'Surat masuk diterima: 001',
+            'tanggal_pengingat' => '2026-08-20 08:00:00',
+            'prioritas' => 'sedang',
+            'status' => 'pending',
+            'source' => 'surat',
+        ]);
+
+        $response = $this->postJson("/api/pengingat/{$pengingat->id}/read");
+
+        $response->assertOk();
+        $this->assertNotNull($pengingat->fresh()->read_at);
+    }
+
+    /**
+     * POST /api/pengingat/{id}/read — another user's notification returns 404.
+     */
+    public function test_user_cannot_mark_others_notification_as_read(): void
+    {
+        $this->actingAsRole('staff');
+        $other = Pengingat::create([
+            'user_id' => $this->user('opd')->id,
+            'judul' => 'Surat masuk diterima: 001',
+            'tanggal_pengingat' => '2026-08-20 08:00:00',
+            'prioritas' => 'sedang',
+            'status' => 'pending',
+            'source' => 'surat',
+        ]);
+
+        $response = $this->postJson("/api/pengingat/{$other->id}/read");
+
+        $response->assertNotFound();
+        $this->assertNull($other->fresh()->read_at);
+    }
+
+    /**
+     * POST /api/pengingat/read-all — marks every notification as read (200).
+     */
+    public function test_user_can_mark_all_notifications_as_read(): void
+    {
+        $user = $this->actingAsRole('staff');
+
+        foreach (['surat', 'kegiatan'] as $source) {
+            Pengingat::create([
+                'user_id' => $user->id,
+                'judul' => "Auto $source",
+                'tanggal_pengingat' => '2026-08-20 08:00:00',
+                'prioritas' => 'sedang',
+                'status' => 'pending',
+                'source' => $source,
+            ]);
+        }
+
+        $response = $this->postJson('/api/pengingat/read-all');
+
+        $response->assertOk();
+        $this->assertDatabaseMissing('pengingats', ['user_id' => $user->id, 'read_at' => null]);
+    }
+
+    /**
+     * GET /api/pengingat/notifications — admin role gets 403.
+     */
+    public function test_admin_cannot_access_notifications(): void
+    {
+        $this->actingAsRole('admin');
+
+        $this->getJson('/api/pengingat/notifications')->assertStatus(403);
+        $this->postJson('/api/pengingat/read-all')->assertStatus(403);
+    }
+
+    /**
+     * GET /api/pengingat/notifications — unauthenticated users get 401.
+     */
+    public function test_guest_cannot_access_notifications(): void
+    {
+        $this->getJson('/api/pengingat/notifications')->assertStatus(401);
+    }
 }

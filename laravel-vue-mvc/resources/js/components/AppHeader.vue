@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { toggle as toggleTheme } from '../composables/useTheme';
+import NotificationBell from './NotificationBell.vue';
 
 defineProps({
     active: { type: String, default: 'dashboard' },
@@ -64,6 +65,11 @@ const handleToggleTheme = () => {
                 <span v-if="user" class="hidden sm:block text-sm text-slate-600 dark:text-slate-300">
                     {{ user.name }}
                 </span>
+                <NotificationBell
+                    v-if="user && user.role_slug !== 'admin'"
+                    :user="user"
+                    @navigate="$emit('navigate', $event)"
+                />
                 <button
                     class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
                     @click="handleToggleTheme"
