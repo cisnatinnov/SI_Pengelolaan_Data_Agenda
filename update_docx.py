@@ -123,7 +123,7 @@ def main():
 
     # Add introduction
     doc.add_paragraph(
-        "Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, dan Class) untuk sistem "
+        "Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, Robustness, dan Class) untuk sistem "
         "SI Pengelolaan Data Agenda, aplikasi berbasis Laravel 12 + Vue 3 (PWA) untuk mengelola "
         "surat, disposisi, kegiatan, kehadiran, dan pengingat."
     )
@@ -232,9 +232,18 @@ def main():
     add_heading_with_style(doc, "3.6 Alur Notifikasi Pengingat Real-Time", 2)
     add_diagram(doc, "15_3_6_alur_notifikasi_pengingat_real_time.png", "Gambar: Activity Diagram Notifikasi Pengingat Real-Time")
 
+    # Robustness Diagram
+    add_heading_with_style(doc, "4. Robustness Diagram", 1)
+    doc.add_paragraph(
+        "Robustness diagram memodelkan hubungan antar tiga jenis objek yang saling berinteraksi dalam setiap "
+        "alur: Boundary (antarmuka pengguna), Controller (logika aplikasi), dan Entity (data/model). Diagram "
+        "ini digunakan untuk memastikan setiap use case dapat dipetakan ke antarmuka, kontrol, dan data yang sesuai."
+    )
+    add_diagram(doc, "16_4_robustness_diagram.png", "Gambar: Robustness Diagram")
+
     # Class Diagram
-    add_heading_with_style(doc, "4. Class Diagram", 1)
-    add_diagram(doc, "16_4_class_diagram.png", "Gambar: Class Diagram")
+    add_heading_with_style(doc, "5. Class Diagram", 1)
+    add_diagram(doc, "17_5_class_diagram.png", "Gambar: Class Diagram")
 
     # Add classes description
     add_heading_with_style(doc, "Class Descriptions", 2)
@@ -296,8 +305,8 @@ def main():
     ]
     add_table_from_markdown(doc, enum_data, header=["Atribut", "Nilai"])
 
-    # 5. Skenario Pengujian API — Response Berhasil / Gagal
-    add_heading_with_style(doc, "5. Skenario Pengujian API — Response Berhasil / Gagal", 1)
+    # 6. Skenario Pengujian API — Response Berhasil / Gagal
+    add_heading_with_style(doc, "6. Skenario Pengujian API — Response Berhasil / Gagal", 1)
     doc.add_paragraph(
         "Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode response HTTP yang "
         "dikembalikan sistem, baik pada kondisi berhasil maupun gagal. Endpoint API mengembalikan format JSON; "
@@ -309,7 +318,7 @@ def main():
     )
 
     api_tables = [
-        ("5.1 Login & Dashboard", [
+        ("6.1 Login & Dashboard", [
             ["A-01", "Membuka halaman login", "Guest", "GET /login", "200", "Berhasil — form login ditampilkan"],
             ["A-02", "Login", "Email & password benar", "POST /login", "302", "Berhasil — redirect ke /"],
             ["A-03", "Login", "Email/password salah", "POST /login", "302 + error", "Gagal — pesan 'Email atau password salah'"],
@@ -320,7 +329,7 @@ def main():
             ["A-08", "Akses dashboard /", "Guest", "GET /", "302", "Gagal — redirect ke /login"],
             ["A-09", "Akses dashboard /", "User terautentikasi", "GET /", "200", "Berhasil — dashboard tampil"],
         ]),
-        ("5.2 Kelola Surat", [
+        ("6.2 Kelola Surat", [
             ["S-01", "Lihat daftar surat", "Terautentikasi", "GET /api/surat", "200", "Berhasil — array surat"],
             ["S-02", "Lihat daftar surat", "Guest", "GET /api/surat", "401", "Gagal — belum login"],
             ["S-03", "Buat surat", "Data valid", "POST /api/surat", "201", "Berhasil — auto buat Disposisi (diterima) & Pengingat"],
@@ -331,7 +340,7 @@ def main():
             ["S-08", "Ubah surat", "Field tidak valid", "PUT /api/surat/{id}", "422", "Gagal — error validasi"],
             ["S-09", "Hapus surat", "Data tersedia", "DELETE /api/surat/{id}", "204", "Berhasil — data terhapus"],
         ]),
-        ("5.3 Kelola Disposisi (Lihat / Serahkan / Tolak)", [
+        ("6.3 Kelola Disposisi (Lihat / Serahkan / Tolak)", [
             ["D-01", "Lihat daftar disposisi", "Terautentikasi", "GET /api/disposisi", "200", "Berhasil — array disposisi"],
             ["D-02", "Lihat disposisi per surat", "Filter ?surat_id=", "GET /api/disposisi?surat_id=5", "200", "Berhasil — hasil terfilter"],
             ["D-03", "Detail disposisi", "Data tersedia", "GET /api/disposisi/{id}", "200", "Berhasil — data + relasi surat"],
@@ -346,7 +355,7 @@ def main():
             ["D-11", "Asisten memakai field staff", "keterangan = diterima", "PUT /api/disposisi/{id}", "422", "Gagal — tidak diizinkan untuk role asisten"],
             ["D-12", "Role lain (OPD) ubah", "Bukan asisten", "PUT /api/disposisi/{id}", "403", "Gagal — tidak memiliki akses"],
         ]),
-        ("5.4 Kelola Kegiatan", [
+        ("6.4 Kelola Kegiatan", [
             ["K-01", "Lihat daftar kegiatan", "Semua role", "GET /api/kegiatan", "200", "Berhasil — daftar + hadir_count/tidak_count"],
             ["K-02", "Detail kegiatan", "Data tersedia", "GET /api/kegiatan/{id}", "200", "Berhasil — data kegiatan"],
             ["K-03", "Detail kegiatan", "Data tidak ditemukan", "GET /api/kegiatan/999", "404", "Gagal — kegiatan tidak ada"],
@@ -361,7 +370,7 @@ def main():
             ["K-12", "Hapus kegiatan", "Staff", "DELETE /api/kegiatan/{id}", "204", "Berhasil — data terhapus"],
             ["K-13", "Hapus kegiatan", "Role bukan staff", "DELETE /api/kegiatan/{id}", "403", "Gagal — tidak memiliki akses"],
         ]),
-        ("5.5 Konfirmasi Kehadiran (OPD)", [
+        ("6.5 Konfirmasi Kehadiran (OPD)", [
             ["H-01", "Konfirmasi hadir", "Role OPD, status = hadir", "POST /api/kegiatan/{id}/kehadiran", "200", "Berhasil — tercatat per akun OPD"],
             ["H-02", "Konfirmasi tidak hadir", "Role OPD, status = tidak", "POST /api/kegiatan/{id}/kehadiran", "200", "Berhasil — status diperbarui"],
             ["H-03", "Ubah konfirmasi", "OPD konfirmasi ulang", "POST /api/kegiatan/{id}/kehadiran", "200", "Berhasil — record di-update"],
@@ -369,7 +378,7 @@ def main():
             ["H-05", "Konfirmasi", "Role bukan OPD", "POST /api/kegiatan/{id}/kehadiran", "403", "Gagal — tidak memiliki akses"],
             ["H-06", "Konfirmasi", "Kegiatan tidak ditemukan", "POST /api/kegiatan/999/kehadiran", "404", "Gagal — kegiatan tidak ada"],
         ]),
-        ("5.6 Kelola Pengingat Pribadi", [
+        ("6.6 Kelola Pengingat Pribadi", [
             ["P-01", "Lihat daftar pengingat", "Data milik sendiri", "GET /api/pengingat", "200", "Berhasil — hanya milik sendiri"],
             ["P-02", "Buat pengingat", "Data valid", "POST /api/pengingat", "201", "Berhasil — tersimpan"],
             ["P-03", "Buat pengingat", "Field wajib kosong", "POST /api/pengingat", "422", "Gagal — error validasi"],
@@ -382,14 +391,14 @@ def main():
             ["P-10", "Hapus pengingat", "Milik user lain", "DELETE /api/pengingat/{id}", "404", "Gagal — tidak ditemukan"],
             ["P-11", "Akses pengingat", "Role Admin", "GET /api/pengingat", "403", "Gagal — admin tidak diperbolehkan"],
         ]),
-        ("5.8 Notifikasi Pengingat Real-Time", [
+        ("6.8 Notifikasi Pengingat Real-Time", [
             ["N-01", "Lihat notifikasi", "Terautentikasi", "GET /api/pengingat/notifications", "200", "Berhasil — hanya source = surat/kegiatan + unread_count"],
             ["N-02", "Tandai notifikasi dibaca", "Milik user yang sama", "POST /api/pengingat/{id}/read", "200", "Berhasil — read_at terisi"],
             ["N-03", "Tandai notifikasi dibaca", "Milik user lain", "POST /api/pengingat/{id}/read", "404", "Gagal — diperlakukan sebagai tidak ditemukan"],
             ["N-04", "Tandai semua notifikasi dibaca", "Terautentikasi", "POST /api/pengingat/read-all", "200", "Berhasil — semua read_at terisi"],
             ["N-05", "Akses notifikasi", "Role Admin", "GET /api/pengingat/notifications", "403", "Gagal — admin tidak diperbolehkan"],
         ]),
-        ("5.7 Kelola Pengguna & Role (Admin)", [
+        ("6.7 Kelola Pengguna & Role (Admin)", [
             ["U-01", "Lihat daftar user", "Role Admin", "GET /api/users", "200", "Berhasil — daftar user + role"],
             ["U-02", "Buat user", "Data valid (password kuat)", "POST /api/users", "201", "Berhasil — user tersimpan"],
             ["U-03", "Buat user", "Email sudah terpakai", "POST /api/users", "422", "Gagal — email duplikat"],
@@ -411,7 +420,7 @@ def main():
         add_table_from_markdown(doc, rows, header=["ID", "Skenario", "Kondisi / Data", "Request", "Response", "Hasil"])
 
     # UAT Section
-    add_heading_with_style(doc, "6. Skenario User Acceptance Test (UAT)", 1)
+    add_heading_with_style(doc, "7. Skenario User Acceptance Test (UAT)", 1)
     doc.add_paragraph(
         "Skenario User Acceptance Test (UAT) berbasis skenario yang dijalankan oleh pengguna akhir untuk "
         "memvalidasi fungsionalitas sistem sesuai kebutuhan. Setiap skenario memuat langkah pengujian dan hasil "
@@ -419,7 +428,7 @@ def main():
     )
     doc.add_paragraph("Skala Status: Lulus (sesuai harapan) / Gagal (tidak sesuai harapan).")
 
-    add_uat_table(doc, "6.1 Login & Dashboard", [
+    add_uat_table(doc, "7.1 Login & Dashboard", [
         ["UAT-01", "Membuka halaman login", "Buka URL /login sebagai pengguna belum login", "Form login (email, password, ingat saya) ditampilkan", "", ""],
         ["UAT-02", "Login berhasil", "Isi email & password akun terdaftar, klik Login", "Redirect ke Dashboard /, sesi aktif", "", ""],
         ["UAT-03", "Login gagal (kredensial salah)", "Isi email/password salah", "Pesan 'Email atau password salah' ditampilkan, tetap di halaman login", "", ""],
@@ -433,7 +442,7 @@ def main():
         ["UAT-11", "Akses halaman tanpa login", "Buka / tanpa autentikasi", "Redirect ke /login", "", ""],
     ])
 
-    add_uat_table(doc, "6.2 Kelola Surat (Staff)", [
+    add_uat_table(doc, "7.2 Kelola Surat (Staff)", [
         ["UAT-12", "Lihat daftar surat", "Login sebagai Staff, buka menu Surat", "Daftar surat ditampilkan", "", ""],
         ["UAT-13", "Tambah surat", "Isi form surat (valid), klik Simpan", "Surat tersimpan; otomatis dibuat Disposisi status Diterima & Pengingat untuk Asisten Daerah; redirect ke Disposisi", "", ""],
         ["UAT-14", "Tambah surat (field wajib kosong)", "Kosongkan field wajib", "Pesan error validasi, data tidak tersimpan", "", ""],
@@ -442,7 +451,7 @@ def main():
         ["UAT-17", "Hak akses surat", "Login sebagai role selain Staff, buka menu Surat", "Menu Surat tidak tersedia", "", ""],
     ])
 
-    add_uat_table(doc, "6.3 Kelola Disposisi (Staff / Asisten Daerah)", [
+    add_uat_table(doc, "7.3 Kelola Disposisi (Staff / Asisten Daerah)", [
         ["UAT-18", "Lihat daftar disposisi", "Login sebagai Staff/Asisten, buka menu Disposisi", "Daftar disposisi (status & alasan) ditampilkan", "", ""],
         ["UAT-19", "Staff tidak dapat mengubah disposisi", "Staff membuka data disposisi", "Tombol Edit/aksi ubah tidak tersedia untuk Staff", "", ""],
         ["UAT-20", "Serahkan disposisi (Asisten)", "Asisten klik Menyerahkan", "Status menjadi Diserahkan", "", ""],
@@ -453,7 +462,7 @@ def main():
         ["UAT-24", "Asisten hanya dapat serahkan/tolak", "Asisten mencoba mengubah field data surat lain", "Hanya status serahkan/tolak (dan Penerima/Dituju/Alasan) yang dapat diubah", "", ""],
     ])
 
-    add_uat_table(doc, "6.4 Kelola Kegiatan & Konfirmasi Kehadiran", [
+    add_uat_table(doc, "7.4 Kelola Kegiatan & Konfirmasi Kehadiran", [
         ["UAT-25", "Lihat daftar kegiatan", "Login sebagai Staff/Asisten/OPD, buka menu Kegiatan", "Daftar kegiatan + rekap hadir/tidak ditampilkan", "", ""],
         ["UAT-26", "Tambah kegiatan (jadwal kosong)", "Staff isi form kegiatan, klik Simpan", "Kegiatan tersimpan; otomatis dibuat Pengingat untuk semua role", "", ""],
         ["UAT-27", "Tambah kegiatan (jadwal bentrok)", "Staff isi kegiatan pada tanggal+jam yang sudah ada", "Kegiatan ditolak, pesan 'Jadwal bentrok' ditampilkan", "", ""],
@@ -465,7 +474,7 @@ def main():
         ["UAT-33", "Role non-staff menambah kegiatan", "OPD/Asisten mencoba tambah kegiatan", "Tombol tambah/edit/hapus tidak tersedia", "", ""],
     ])
 
-    add_uat_table(doc, "6.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)", [
+    add_uat_table(doc, "7.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)", [
         ["UAT-34", "Lihat pengingat milik sendiri", "Login, buka menu Pengingat", "Hanya pengingat milik akun sendiri yang tampil", "", ""],
         ["UAT-35", "Tambah pengingat", "Isi judul, tanggal, prioritas, klik Simpan", "Pengingat tersimpan", "", ""],
         ["UAT-36", "Ubah pengingat", "Ubah data pengingat, simpan", "Data terupdate", "", ""],
@@ -473,7 +482,7 @@ def main():
         ["UAT-38", "Pengingat milik user lain", "Buka/ubah/hapus pengingat milik user lain", "Diperlakukan sebagai tidak ditemukan (ditolak)", "", ""],
     ])
 
-    add_uat_table(doc, "6.6 Kelola Pengguna (Admin)", [
+    add_uat_table(doc, "7.6 Kelola Pengguna (Admin)", [
         ["UAT-39", "Lihat daftar pengguna", "Login sebagai Admin, buka menu Pengguna", "Daftar pengguna + role ditampilkan", "", ""],
         ["UAT-40", "Tambah pengguna", "Isi data valid (password kuat), klik Simpan", "Pengguna tersimpan", "", ""],
         ["UAT-41", "Tambah pengguna (email duplikat)", "Isi email yang sudah terpakai", "Pesan error email duplikat, data tidak tersimpan", "", ""],
@@ -485,7 +494,7 @@ def main():
     ])
 
     # 6.7
-    add_uat_table(doc, "6.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)", [
+    add_uat_table(doc, "7.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)", [
         ["UAT-47", "Lonceng notifikasi tampil", "Login sebagai Staff/Asisten/OPD", "Ikon lonceng Notifikasi Pengingat tampil di header (tidak tampil untuk Admin)", "", ""],
         ["UAT-48", "Notifikasi real-time dari Tambah Surat", "Staff menambah Surat; periksa akun Asisten Daerah pada tab lain (tanpa refresh)", "Lonceng bertambah real-time dengan badge jumlah belum dibaca", "", ""],
         ["UAT-49", "Notifikasi real-time dari Tambah Kegiatan", "Staff menambah Kegiatan; periksa akun lain pada tab lain (tanpa refresh)", "Lonceng bertambah real-time dengan badge jumlah belum dibaca", "", ""],

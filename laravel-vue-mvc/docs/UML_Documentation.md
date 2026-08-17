@@ -1,6 +1,6 @@
 # Dokumentasi UML — SI Pengelolaan Data Agenda
 
-Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, dan Class) untuk sistem **SI Pengelolaan Data Agenda**, aplikasi berbasis **Laravel 12 + Vue 3 (PWA)** untuk mengelola surat, disposisi, kegiatan, kehadiran, dan pengingat.
+Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, Robustness, dan Class) untuk sistem **SI Pengelolaan Data Agenda**, aplikasi berbasis **Laravel 12 + Vue 3 (PWA)** untuk mengelola surat, disposisi, kegiatan, kehadiran, dan pengingat.
 
 ## Ringkasan Sistem
 
@@ -548,7 +548,116 @@ swimlane-beta LR
 
 ---
 
-## 4. Class Diagram
+## 4. Robustness Diagram
+
+Robustness diagram memodelkan hubungan antar tiga jenis objek yang saling berinteraksi dalam setiap alur: **Boundary** (antarmuka pengguna), **Controller** (logika aplikasi), dan **Entity** (data/model). Diagram ini digunakan untuk memastikan setiap use case dapat dipetakan ke antarmuka, kontrol, dan data yang sesuai.
+
+```mermaid
+flowchart TD
+    classDef boundary fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e
+    classDef controller fill:#fef3c7,stroke:#b45309,color:#78350f
+    classDef entity fill:#dcfce7,stroke:#15803d,color:#14532d
+
+    %% ==== Aktor ====
+    Admin([Admin])
+    Staff([Staff])
+    Asisten([Asisten Daerah])
+    OPD([OPD])
+
+    %% ==== Boundary (Antarmuka Pengguna) ====
+    subgraph Boundary [Boundary — Antarmuka Pengguna]
+        B_LOGIN(Form Login):::boundary
+        B_DASH(Dashboard):::boundary
+        B_SURAT(Form & Daftar Surat):::boundary
+        B_DISP(Daftar & Detail Disposisi):::boundary
+        B_KEG(Form & Daftar Kegiatan):::boundary
+        B_KEH(Konfirmasi Kehadiran):::boundary
+        B_NOTIF(Lonceng Notifikasi):::boundary
+        B_PENG(Form Pengingat):::boundary
+        B_USER(Form Pengguna):::boundary
+    end
+
+    %% ==== Controller (Logika Aplikasi) ====
+    subgraph Controller [Controller — Logika Aplikasi]
+        C_AUTH(AuthController):::controller
+        C_SURAT(SuratController):::controller
+        C_DISP(DisposisiController):::controller
+        C_KEG(KegiatanController):::controller
+        C_PENG(PengingatController):::controller
+        C_USER(UserController):::controller
+    end
+
+    %% ==== Entity (Model / Database) ====
+    subgraph Entity [Entity — Model / Database]
+        E_USER[(User)]:::entity
+        E_ROLE[(Role)]:::entity
+        E_SURAT[(Surat)]:::entity
+        E_DISP[(Disposisi)]:::entity
+        E_KEG[(Kegiatan)]:::entity
+        E_KEH[(KegiatanKehadiran)]:::entity
+        E_PENG[(Pengingat)]:::entity
+        E_NOTIF[(PengingatNotification)]:::entity
+    end
+
+    %% ==== Alur: Login ====
+    Admin --> B_LOGIN
+    Staff --> B_LOGIN
+    Asisten --> B_LOGIN
+    OPD --> B_LOGIN
+    B_LOGIN --> C_AUTH
+    C_AUTH --> E_USER
+
+    %% ==== Alur: Dashboard ====
+    Staff --> B_DASH
+    B_DASH --> C_SURAT
+    B_DASH --> C_KEG
+
+    %% ==== Alur: Surat ====
+    Staff --> B_SURAT
+    B_SURAT --> C_SURAT
+    C_SURAT --> E_SURAT
+    C_SURAT --> E_DISP
+    C_SURAT --> E_PENG
+
+    %% ==== Alur: Disposisi ====
+    Staff --> B_DISP
+    Asisten --> B_DISP
+    B_DISP --> C_DISP
+    C_DISP --> E_DISP
+    C_DISP --> E_PENG
+
+    %% ==== Alur: Kegiatan & Kehadiran ====
+    Staff --> B_KEG
+    Asisten --> B_KEG
+    OPD --> B_KEG
+    B_KEG --> C_KEG
+    C_KEG --> E_KEG
+    C_KEG --> E_KEH
+    OPD --> B_KEH
+    B_KEH --> C_KEG
+
+    %% ==== Alur: Pengingat & Notifikasi ====
+    Staff --> B_PENG
+    Asisten --> B_PENG
+    OPD --> B_PENG
+    B_PENG --> C_PENG
+    C_PENG --> E_PENG
+    Staff --> B_NOTIF
+    Asisten --> B_NOTIF
+    OPD --> B_NOTIF
+    B_NOTIF --> C_PENG
+    C_PENG --> E_NOTIF
+
+    %% ==== Alur: Pengguna ====
+    Admin --> B_USER
+    B_USER --> C_USER
+    C_USER --> E_USER
+    C_USER --> E_ROLE
+```
+
+---
+
+## 5. Class Diagram
 
 ```mermaid
 classDiagram
@@ -663,13 +772,13 @@ classDiagram
 
 ---
 
-## 5. Skenario Pengujian API — Response Berhasil / Gagal
+## 6. Skenario Pengujian API — Response Berhasil / Gagal
 
 Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **response HTTP** yang dikembalikan sistem, baik pada kondisi **berhasil** maupun **gagal**. Endpoint API mengembalikan format JSON; endpoint web (login/logout) mengembalikan redirect.
 
 > **Keterangan status:** `200` sukses dengan data, `201` sukses buat data baru, `204` sukses hapus tanpa konten, `302` redirect, `401` belum login, `403` role tidak berhak, `404` data tidak ditemukan, `422` validasi gagal.
 
-### 5.1 Login & Dashboard
+### 6.1 Login & Dashboard
 
 | ID | Skenario | Kondisi | Request | Response | Hasil |
 |----|----------|---------|---------|----------|-------|
@@ -683,7 +792,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | A-08 | Akses dashboard `/` | Guest | `GET /` | `302` | **Gagal** — redirect ke `/login` |
 | A-09 | Akses dashboard `/` | User terautentikasi | `GET /` | `200` | **Berhasil** — dashboard tampil |
 
-### 5.2 Kelola Surat
+### 6.2 Kelola Surat
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -697,7 +806,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | S-08 | Ubah surat | Field tidak valid | `PUT /api/surat/{id}` | `422` | **Gagal** — error validasi |
 | S-09 | Hapus surat | Data tersedia | `DELETE /api/surat/{id}` | `204` | **Berhasil** — data terhapus (tanpa konten) |
 
-### 5.3 Kelola Disposisi (Lihat / Serahkan / Tolak)
+### 6.3 Kelola Disposisi (Lihat / Serahkan / Tolak)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -715,7 +824,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | D-11 | Asisten memakai field staff | `keterangan = diterima` | `PUT /api/disposisi/{id}` | `422` | **Gagal** — tidak diizinkan untuk role asisten |
 | D-12 | Role lain (OPD) ubah | Bukan asisten | `PUT /api/disposisi/{id}` | `403` | **Gagal** — tidak memiliki akses |
 
-### 5.4 Kelola Kegiatan (Buat / Ubah / Hapus) + Auto Cek Bentrok Jadwal
+### 6.4 Kelola Kegiatan (Buat / Ubah / Hapus) + Auto Cek Bentrok Jadwal
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -733,7 +842,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | K-12 | **Hapus** kegiatan | Staff | `DELETE /api/kegiatan/{id}` | `204` | **Berhasil** — data terhapus |
 | K-13 | **Hapus** kegiatan | Role bukan staff | `DELETE /api/kegiatan/{id}` | `403` | **Gagal** — tidak memiliki akses |
 
-### 5.5 Konfirmasi Kehadiran (OPD)
+### 6.5 Konfirmasi Kehadiran (OPD)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -744,7 +853,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | H-05 | Konfirmasi | Role bukan OPD (staff) | `POST /api/kegiatan/{id}/kehadiran` | `403` | **Gagal** — tidak memiliki akses |
 | H-06 | Konfirmasi | Kegiatan tidak ditemukan | `POST /api/kegiatan/999/kehadiran` | `404` | **Gagal** — kegiatan tidak ada |
 
-### 5.6 Kelola Pengingat Pribadi (Staff / Asisten Daerah / OPD)
+### 6.6 Kelola Pengingat Pribadi (Staff / Asisten Daerah / OPD)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -760,7 +869,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | P-10 | Hapus pengingat | Milik user lain | `DELETE /api/pengingat/{id}` | `404` | **Gagal** — diperlakukan sebagai tidak ditemukan |
 | P-11 | Akses pengingat | Role Admin | `GET /api/pengingat` | `403` | **Gagal** — admin tidak diperbolehkan |
 
-### 5.8 Notifikasi Pengingat Real-Time
+### 6.8 Notifikasi Pengingat Real-Time
 
 | ID | Skenario Uji | Kondisi | Endpoint | Status | Hasil |
 |----|--------------|---------|----------|--------|-------|
@@ -770,7 +879,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | N-04 | Tandai semua notifikasi dibaca | Terautentikasi | `POST /api/pengingat/read-all` | `200` | **Berhasil** — semua `read_at` terisi |
 | N-05 | Akses notifikasi | Role Admin | `GET /api/pengingat/notifications` | `403` | **Gagal** — admin tidak diperbolehkan |
 
-### 5.7 Kelola Pengguna & Role (Admin)
+### 6.7 Kelola Pengguna & Role (Admin)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -790,13 +899,13 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 
 ---
 
-## 6. Skenario User Acceptance Test (UAT)
+## 7. Skenario User Acceptance Test (UAT)
 
 Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang dijalankan oleh pengguna akhir untuk memvalidasi fungsionalitas sistem sesuai kebutuhan. Setiap skenario memuat langkah pengujian dan hasil yang diharapkan; kolom **Hasil Aktual** dan **Status** diisi oleh penguji (pengguna) selama uji penerimaan.
 
 > **Skala Status:** `Lulus` (sesuai harapan) / `Gagal` (tidak sesuai harapan).
 
-### 6.1 Login & Dashboard
+### 7.1 Login & Dashboard
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -812,7 +921,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-10 | Statistik kegiatan akurat | Bandingkan angka Total/Dilaksanakan/Tidak Dilaksanakan dengan data | Jumlah sesuai data di halaman Kegiatan | | |
 | UAT-11 | Akses halaman tanpa login | Buka `/` tanpa autentikasi | Redirect ke `/login` | | |
 
-### 6.2 Kelola Surat (Staff)
+### 7.2 Kelola Surat (Staff)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -823,7 +932,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-16 | Hapus surat | Klik **Hapus**, konfirmasi pada dialog | Data terhapus, toast **berhasil** | | |
 | UAT-17 | Hak akses surat | Login sebagai role **selain Staff**, buka menu Surat | Menu Surat tidak tersedia | | |
 
-### 6.3 Kelola Disposisi (Staff / Asisten Daerah)
+### 7.3 Kelola Disposisi (Staff / Asisten Daerah)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -836,7 +945,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-23 | Tidak ada aksi hapus disposisi | Staff/Asisten mencari tombol **Hapus** pada disposisi | Aksi hapus tidak tersedia untuk semua role | | |
 | UAT-24 | Asisten menyerahkan/menolak tanpa kewenangan lain | Asisten mencoba mengubah field data surat lain | Hanya status serahkan/tolak (dan Penerima/Dituju/Alasan) yang dapat diubah | | |
 
-### 6.4 Kelola Kegiatan & Konfirmasi Kehadiran
+### 7.4 Kelola Kegiatan & Konfirmasi Kehadiran
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -850,7 +959,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-32 | Lihat daftar OPD | Staff/Asisten buka **Daftar OPD** pada kegiatan | Daftar OPD yang mengonfirmasi hadir/tidak tampil | | |
 | UAT-33 | Role non-staff menambah kegiatan | OPD/Asisten mencoba tambah kegiatan | Tombol tambah/edit/hapus tidak tersedia | | |
 
-### 6.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)
+### 7.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -860,7 +969,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-37 | Hapus pengingat | Klik **Hapus**, konfirmasi | Data terhapus | | |
 | UAT-38 | Pengingat milik user lain | Buka/ubah/hapus pengingat milik user lain | Diperlakukan sebagai tidak ditemukan (ditolak) | | |
 
-### 6.6 Kelola Pengguna (Admin)
+### 7.6 Kelola Pengguna (Admin)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -873,7 +982,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-45 | Hapus akun sendiri | Coba hapus akun yang sedang login | Ditolak, pesan tidak dapat menghapus akun sendiri | | |
 | UAT-46 | Hak akses pengguna | Login sebagai role selain Admin, buka menu **Pengguna** | Menu Pengguna tidak tersedia | | |
 
-### 6.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)
+### 7.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
