@@ -22,15 +22,17 @@ docker run -d \
    ```
    php artisan serve
    ```
-3. Jalankan Vite dev server:
+3. Jalankan Reverb (dari folder `laravel-vue-mvc`):
+   ```
+   php artisan reverb:start
+   ```
+4. Jalankan Vite dev server (dari folder `laravel-vue-mvc`):
    ```
    npm run dev
    ```
-4. Buka browser: **http://127.0.0.1:8000**
+5. Buka browser: **http://127.0.0.1:8000**
 
 ## Akun Login (per Role)
-
-Semua akun menggunakan password: **Password@123**
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -59,7 +61,11 @@ Saat mengelola pengguna, form menampilkan indikator kekuatan password secara rea
 | Kegiatan — konfirmasi kehadiran | ❌ | ❌ | ❌ | ✅ |
 | Surat | ❌ | ✅ | ❌ | ❌ |
 | Disposisi | ❌ | ✅ | ✅ | ❌ |
+| Disposisi — kirim otomatis saat tambah surat baru | ❌ | ✅ | ❌ | ❌ |
+| Disposisi — menerima tanpa alasan tapi disertai penerima dan yang dituju/menolak disertai alasan | ❌ | ❌ | ✅ | ❌ |
 | Pengingat | ❌ | ✅ | ✅ | ✅ |
+| Pengingat — saat ada surat baru masuk | ❌ | ❌ | ✅ | ❌ |
+| Pengingat — saat disposisi diterima/ditolak | ❌ | ✅ | ❌ | ❌ |
 | Pengguna (kelola akun) | ✅ | ❌ | ❌ | ❌ |
 
 ## Menu
@@ -87,20 +93,21 @@ Hanya **Staff** yang dapat menambah, mengedit, dan menghapus. Role lain hanya da
 ### Surat (Staff)
 Kelola data surat. Saat surat baru dibuat, sistem otomatis:
 1. Membuat data **Disposisi** (kolom Penerima/Dituju dikosongkan), dan
-2. Menandai disposisi sebagai **Diterima** tanpa perlu diedit.
+2. Menandai disposisi sebagai **Diterima** tanpa perlu diedit, serta
+3. Membuat **Pengingat** untuk seluruh akun **Asisten Daerah** (`source = surat`).
 
 Setelah surat baru berhasil disimpan, aplikasi otomatis berpindah ke halaman **Disposisi** untuk surat tersebut.
 
-### Disposisi (Staff)
-Data disposisi yang otomatis dibuat dari Surat. Dapat diedit untuk mengisi **Penerima**, **Dituju**, dan **Keterangan**:
-- **Diterima** / **Diserahkan**: tanpa syarat tambahan
-- **Ditolak**: wajib mengisi **Alasan Ditolak**
+### Disposisi (Staff / Asisten Daerah)
+Data disposisi yang otomatis dibuat dari Surat dengan status **Diterima** (tanpa perlu diedit oleh Staff).
 
 Gunakan tombol **Disposisi** pada baris data Surat untuk melompat ke disposisi terkait.
 
 Hak akses Disposisi:
-- **Staff**: dapat mengedit seluruh data disposisi (termasuk keterangan, Penerima, Dituju) dan menghapus.
-- **Asisten Daerah**: dapat melihat disposisi serta **menyerahkan** (diserahkan) atau **menolak** (ditolak, wajib alasan) surat. Tidak dapat mengubah data surat lain atau menghapus.
+- **Staff**: hanya dapat **melihat** data disposisi. Tidak dapat mengubah, menyetujui, menolak, maupun menghapus.
+- **Asisten Daerah**: dapat melihat disposisi serta **menyerahkan** (wajib mengisi **Penerima** dan **Dituju**, tanpa alasan) atau **menolak** (wajib mengisi **Alasan**) surat. Tidak dapat menghapus.
+
+Saat Asisten Daerah **menyerahkan** atau **menolak** disposisi, sistem otomatis membuat **Pengingat** untuk seluruh akun **Staff** (`source = disposisi`).
 
 ### Pengingat (Staff, Asisten Daerah, OPD)
 Kelola pengingat pribadi. Setiap pengguna hanya melihat pengingat miliknya sendiri. Kolom:
@@ -114,12 +121,11 @@ Kelola akun pengguna: tambah, edit (nama, email, role, password), dan hapus. Aku
 
 ## Fitur Umum
 
-- **Validasi form saat mengetik**: semua form (Surat, Kegiatan, Pengguna, Pengingat, Disposisi, Tolak Disposisi) memvalidasi kolom wajib secara langsung saat pengguna mengetik. Field yang tidak valid ditandai dengan border merah dan pesan error muncul/berubah secara real-time; form tidak dapat disimpan sebelum semua kolom wajib valid.
+- **Validasi form saat mengetik**: semua form (Surat, Kegiatan, Pengguna, Pengingat, Serahkan Disposisi, Tolak Disposisi) memvalidasi kolom wajib secara langsung saat pengguna mengetik. Field yang tidak valid ditandai dengan border merah dan pesan error muncul/berubah secara real-time; form tidak dapat disimpan sebelum semua kolom wajib valid.
 - **Notifikasi hasil aksi (berhasil/gagal)**: semua operasi CRUD menampilkan notifikasi *toast* di pojok kanan atas:
   - **Berhasil** (hijau): data berhasil ditambahkan / diperbarui / dihapus, termasuk konfirmasi kehadiran, penyerahan, dan penolakan disposisi.
   - **Gagal** (merah): menampilkan alasan kegagalan saat menyimpan/menghapus data.
-- **Konfirmasi penghapusan**: setiap aksi hapus (Surat, Kegiatan, Pengguna, Disposisi, Pengingat) memunculkan dialog konfirmasi sebelum data benar-benar dihapus. Tombol **Hapus** hanya menjalankan aksi setelah pengguna menekan tombol konfirmasi.
+- **Konfirmasi penghapusan**: setiap aksi hapus (Surat, Kegiatan, Pengguna, Pengingat) memunculkan dialog konfirmasi sebelum data benar-benar dihapus. Tombol **Hapus** hanya menjalankan aksi setelah pengguna menekan tombol konfirmasi. Disposisi tidak memiliki aksi hapus (dibuat otomatis dari Surat).
 
 ## Lainnya
-- **Mode Terang/Gelap**: tombol di sidebar atau header.
 - **Logout**: ikon di pojok kanan atas header.

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Disposisi;
+use App\Models\Pengingat;
 use App\Models\Surat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -91,9 +92,9 @@ class DisposisiTest extends TestCase
     }
 
     /**
-     * PUT /api/disposisi/{id} — staff can update a disposisi (200).
+     * PUT /api/disposisi/{id} — staff cannot update disposisi (403).
      */
-    public function test_staff_can_update_disposisi(): void
+    public function test_staff_cannot_update_disposisi(): void
     {
         $this->actingAsRole('staff');
         $disposisi = $this->makeDisposisi();
@@ -102,50 +103,36 @@ class DisposisiTest extends TestCase
             'perihal' => 'Perihal Diubah',
         ]));
 
-        $response->assertOk();
+        $response->assertStatus(403);
         $this->assertDatabaseHas('disposisi', [
             'id' => $disposisi->id,
-            'perihal' => 'Perihal Diubah',
+            'perihal' => $disposisi->perihal,
         ]);
     }
 
     /**
-     * PUT /api/disposisi/{id} — alasan is cleared unless rejected.
+     * PUT /api/disposisi/{id} — staff cannot use the asisten-only flow (403).
      */
-    public function test_staff_update_clears_alasan_for_non_rejected(): void
-    {
-        $this->actingAsRole('staff');
-        $disposisi = Disposisi::factory()->create(['keterangan' => 'ditolak', 'alasan' => 'Data tidak lengkap']);
-
-        $response = $this->putJson("/api/disposisi/{$disposisi->id}", $this->validData([
-            'keterangan' => 'diterima',
-            'alasan' => 'Harusnya kosong',
-        ]));
-
-        $response->assertOk();
-        $this->assertDatabaseHas('disposisi', [
-            'id' => $disposisi->id,
-            'keterangan' => 'diterima',
-            'alasan' => null,
-        ]);
-    }
-
-    /**
-     * PUT /api/disposisi/{id} — invalid payload fails validation (422).
-     */
-    public function test_staff_cannot_update_invalid_disposisi(): void
+    public function test_staff_cannot_approve_or_reject_disposisi(): void
     {
         $this->actingAsRole('staff');
         $disposisi = $this->makeDisposisi();
 
-        $response = $this->putJson("/api/disposisi/{$disposisi->id}", ['perihal' => '']);
+        $response = $this->putJson("/api/disposisi/{$disposisi->id}", [
+            'keterangan' => 'diserahkan',
+            'tandatangan_penerima' => 'Kepala Dinas',
+            'tandatangan_dituju' => 'Sekretaris Daerah',
+        ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['perihal']);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('disposisi', [
+            'id' => $disposisi->id,
+            'keterangan' => 'diterima',
+        ]);
     }
 
     /**
-     * PUT /api/disposisi/{id} — asisten_daerah can sahkan (diserahkan) (200).
+     * PUT /api/disposisi/{id} — asisten_daerah can sahkan (diserahkan) with penerima & dituju (200).
      */
     public function test_asisten_daerah_can_approve_disposisi(): void
     {
@@ -154,14 +141,40 @@ class DisposisiTest extends TestCase
 
         $response = $this->putJson("/api/disposisi/{$disposisi->id}", [
             'keterangan' => 'diserahkan',
-            'alasan' => null,
+            'tandatangan_penerima' => 'Kepala Dinas',
+            'tandatangan_dituju' => 'Sekretaris Daerah',
         ]);
 
         $response->assertOk();
         $this->assertDatabaseHas('disposisi', [
             'id' => $disposisi->id,
             'keterangan' => 'diserahkan',
+            'tandatangan_penerima' => 'Kepala Dinas',
+            'tandatangan_dituju' => 'Sekretaris Daerah',
             'alasan' => null,
+        ]);
+    }
+
+    /**
+     * PUT /api/disposisi/{id} — asisten_daerah must provide penerima & dituju when approving (422).
+     */
+    public function test_asisten_daerah_must_provide_penerima_dituju_when_approving(): void
+    {
+        $this->actingAsRole('asisten_daerah');
+        $disposisi = $this->makeDisposisi();
+
+        $response = $this->putJson("/api/disposisi/{$disposisi->id}", [
+            'keterangan' => 'diserahkan',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors([
+            'tandatangan_penerima',
+            'tandatangan_dituju',
+        ]);
+        $this->assertDatabaseHas('disposisi', [
+            'id' => $disposisi->id,
+            'keterangan' => 'diterima',
         ]);
     }
 
@@ -184,6 +197,60 @@ class DisposisiTest extends TestCase
             'keterangan' => 'ditolak',
             'alasan' => 'Jadwal bentrok',
         ]);
+    }
+
+    /**
+     * PUT /api/disposisi/{id} — approving (diserahkan) creates a pengingat for every staff user.
+     */
+    public function test_asisten_daerah_approving_disposisi_notifies_staff(): void
+    {
+        $this->actingAsRole('asisten_daerah');
+        $staffA = $this->user('staff');
+        $staffB = $this->user('staff');
+        $disposisi = $this->makeDisposisi();
+
+        $response = $this->putJson("/api/disposisi/{$disposisi->id}", [
+            'keterangan' => 'diserahkan',
+            'tandatangan_penerima' => 'Kepala Dinas',
+            'tandatangan_dituju' => 'Sekretaris Daerah',
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('pengingats', [
+            'user_id' => $staffA->id,
+            'source' => 'disposisi',
+            'status' => 'pending',
+        ]);
+        $this->assertDatabaseHas('pengingats', [
+            'user_id' => $staffB->id,
+            'source' => 'disposisi',
+            'status' => 'pending',
+        ]);
+        $this->assertStringContainsString('diserahkan', Pengingat::where('user_id', $staffA->id)->first()->judul);
+    }
+
+    /**
+     * PUT /api/disposisi/{id} — rejecting (ditolak) creates a pengingat for every staff user.
+     */
+    public function test_asisten_daerah_rejecting_disposisi_notifies_staff(): void
+    {
+        $this->actingAsRole('asisten_daerah');
+        $staff = $this->user('staff');
+        $disposisi = $this->makeDisposisi();
+
+        $response = $this->putJson("/api/disposisi/{$disposisi->id}", [
+            'keterangan' => 'ditolak',
+            'alasan' => 'Berkas tidak lengkap',
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('pengingats', [
+            'user_id' => $staff->id,
+            'source' => 'disposisi',
+            'status' => 'pending',
+        ]);
+        $this->assertStringContainsString('ditolak', Pengingat::where('user_id', $staff->id)->first()->judul);
+        $this->assertStringContainsString('Berkas tidak lengkap', Pengingat::where('user_id', $staff->id)->first()->deskripsi);
     }
 
     /**
@@ -235,30 +302,16 @@ class DisposisiTest extends TestCase
     }
 
     /**
-     * DELETE /api/disposisi/{id} — staff can delete (204).
+     * DELETE /api/disposisi/{id} — route is not registered for any role (405).
      */
-    public function test_staff_can_delete_disposisi(): void
+    public function test_no_role_can_delete_disposisi(): void
     {
         $this->actingAsRole('staff');
         $disposisi = $this->makeDisposisi();
 
         $response = $this->deleteJson("/api/disposisi/{$disposisi->id}");
 
-        $response->assertStatus(204);
-        $this->assertDatabaseMissing('disposisi', ['id' => $disposisi->id]);
-    }
-
-    /**
-     * DELETE /api/disposisi/{id} — non-staff roles get 403.
-     */
-    public function test_asisten_daerah_cannot_delete_disposisi(): void
-    {
-        $this->actingAsRole('asisten_daerah');
-        $disposisi = $this->makeDisposisi();
-
-        $response = $this->deleteJson("/api/disposisi/{$disposisi->id}");
-
-        $response->assertStatus(403);
+        $response->assertStatus(405);
         $this->assertDatabaseHas('disposisi', ['id' => $disposisi->id]);
     }
 

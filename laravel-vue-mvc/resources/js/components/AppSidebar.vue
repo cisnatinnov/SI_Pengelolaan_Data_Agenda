@@ -69,7 +69,7 @@ const icons = {
 <template>
     <aside
         v-if="!mobile"
-        class="hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-out border-r border-slate-200/70 dark:border-white/20 bg-white/50 dark:bg-slate-900/80 backdrop-blur-xl"
+        class="hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-out border-r border-slate-200/70  bg-white/50  backdrop-blur-xl"
         :class="collapsed ? 'w-[76px]' : 'w-64'"
     >
         <nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
@@ -81,7 +81,7 @@ const icons = {
                 :class="[
                     active === link.key
                         ? 'gradient-brand text-white shadow-lg shadow-indigo-500/25'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5',
+                        : 'text-slate-600  hover:bg-slate-100 ',
                     collapsed ? 'justify-center px-0' : '',
                 ]"
                 @click="emit('navigate', link.key)"
@@ -104,12 +104,12 @@ const icons = {
     <transition name="slide-right">
         <aside
             v-if="mobile"
-            class="fixed inset-y-0 left-0 z-50 w-72 flex flex-col glass-dark lg:hidden"
+            class="fixed inset-y-0 left-0 z-50 w-72 flex flex-col glass border-r border-slate-200/70 lg:hidden"
         >
-            <div class="flex items-center justify-between px-5 h-16 border-b border-white/10">
+            <div class="flex items-center justify-between px-5 h-16 border-b border-slate-200/70">
                 <h2 class="font-display font-bold gradient-brand-text">DATA AGENDA</h2>
                 <button
-                    class="p-2 rounded-lg text-slate-300 hover:bg-white/10 transition-colors"
+                    class="p-2 rounded-lg text-slate-600 hover:bg-slate-200/60 transition-colors"
                     @click="emit('close')"
                     aria-label="Close sidebar"
                 >
@@ -126,7 +126,7 @@ const icons = {
                     :class="
                         active === link.key
                             ? 'gradient-brand text-white shadow-lg shadow-indigo-500/25'
-                            : 'text-slate-300 hover:bg-white/5'
+                            : 'text-slate-600 hover:bg-slate-100'
                     "
                     @click="emit('navigate', link.key)"
                 >

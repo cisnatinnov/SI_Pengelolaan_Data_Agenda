@@ -12,9 +12,10 @@ Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, dan Class) untuk s
 - Saat salah satu role menambah **Kegiatan**, sistem otomatis membuat **Pengingat** untuk **semua role**.
 - Saat menambah **Kegiatan**, sistem otomatis melakukan **Cek Bentrok Jadwal**: jika sudah ada kegiatan lain pada tanggal dan jam yang sama, pembuatan kegiatan ditolak.
 - Hanya **OPD** yang dapat melakukan **Konfirmasi Kehadiran** kegiatan (`hadir` / `tidak`), tercatat per akun OPD. Role lain dapat melihat rekap dan daftar OPD yang mengonfirmasi.
-- **Disposisi** dapat **Diserahkan** atau **Ditolak** (wajib alasan) oleh Asisten Daerah.
+- **Disposisi** dapat **Diserahkan** atau **Ditolak** (wajib alasan) oleh Asisten Daerah. Saat **Diserahkan**, Asisten Daerah wajib mengisi **Penerima** (`tandatangan_penerima`) dan **Dituju** (`tandatangan_dituju`). Sistem otomatis membuat **Pengingat** untuk seluruh akun **Staff**.
+- **Staff hanya dapat melihat Disposisi**: tidak dapat mengubah, menyerahkan/menolak, maupun menghapus. Hanya **Asisten Daerah** yang dapat menyerahkan/menolak; tidak ada role yang dapat menghapus disposisi.
 - **Lonceng Notifikasi Pengingat** tersedia di header untuk role Staff, Asisten Daerah, dan OPD.
-- Notifikasi **Real-Time** (via **Laravel Reverb** + **Laravel Echo**) hanya aktif untuk pengingat yang dibuat otomatis dari form **Tambah Surat** (`source = surat`) dan **Tambah Kegiatan** (`source = kegiatan`). Pengingat yang dibuat manual tidak memicu notifikasi.
+- Notifikasi **Real-Time** (via **Laravel Reverb** + **Laravel Echo**) hanya aktif untuk pengingat yang dibuat otomatis dari form **Tambah Surat** (`source = surat`), **Tambah Kegiatan** (`source = kegiatan`), dan aksi **Menyerahkan/Menolak Disposisi** (`source = disposisi`). Pengingat yang dibuat manual tidak memicu notifikasi.
 - Setiap pengingat otomatis dilengkapi status **dibaca / belum dibaca** (`read_at`) dan dapat ditandai dibaca per item atau semuanya.
 
 ## Aktor
@@ -22,7 +23,7 @@ Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, dan Class) untuk s
 | Aktor | Deskripsi |
 |-------|-----------|
 | **Admin** | Mengelola pengguna & role. Tidak memiliki akses pengingat/notifikasi. |
-| **Staff** | Mengelola surat, disposisi, kegiatan, dan pengingat pribadi; menerima notifikasi pengingat real-time. |
+| **Staff** | Mengelola surat dan kegiatan, melihat disposisi, dan mengelola pengingat pribadi; menerima notifikasi pengingat real-time. |
 | **Asisten Daerah** | Meninjau disposisi (menyerahkan/menolak), mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time. |
 | **OPD** | Mengonfirmasi kehadiran kegiatan, mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time. |
 
@@ -45,7 +46,7 @@ flowchart TD
 
     subgraph Surat & Disposisi
         UC_SURAT[Kelola Surat: buat / ubah / hapus]
-        UC_DISP_EDIT[Kelola Disposisi: ubah / hapus]
+        UC_DISP_LIHAT[Lihat Disposisi]
         UC_DISP_SERAH[Menyerahkan Disposisi]
         UC_DISP_TOLAK[Menolak Disposisi dengan Alasan]
     end
@@ -90,7 +91,7 @@ flowchart TD
     UC_SURAT -->|<<include>>| UC_AUTO_NOTIF_ASIST
     UC_AUTO_NOTIF_ASIST -->|<<include>>| UC_AUTO_BROADCAST
 
-    Staff --> UC_DISP_EDIT
+    Staff --> UC_DISP_LIHAT
     Asisten --> UC_DISP_SERAH
     Asisten --> UC_DISP_TOLAK
 
@@ -236,7 +237,7 @@ sequenceDiagram
     UI-->>Staff: Navigasi ke Disposisi (status Diterima otomatis)
 ```
 
-### 2.4 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak)
+### 2.4 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak) → Pengingat Staff
 
 ```mermaid
 sequenceDiagram
@@ -244,16 +245,25 @@ sequenceDiagram
     participant UI as Frontend (Vue)
     participant API as API (Laravel)
     participant DB as Database
+    participant WS as Reverb (WebSocket)
 
     Asisten->>UI: Klik tombol "Menyerahkan" atau "Menolak"
-    alt Diserahkan
-        UI->>API: PATCH /api/disposisi/{id} { keterangan: "diserahkan" }
+    alt Diserahkan (wajib Penerima & Dituju)
+        UI->>API: PATCH /api/disposisi/{id} { keterangan: "diserahkan", tandatangan_penerima, tandatangan_dituju }
     else Ditolak (wajib alasan)
         UI->>API: PATCH /api/disposisi/{id} { keterangan: "ditolak", alasan }
     end
 
     API->>API: Validasi & cek role (asisten_daerah)
-    API->>DB: Update keterangan (+ alasan jika ditolak)
+    API->>DB: Update keterangan (Penerima & Dituju jika diserahkan, alasan jika ditolak)
+
+    rect rgb(230, 240, 255)
+        Note over API,DB: Proses otomatis
+        API->>DB: Buat Pengingat untuk semua user Staff (source = "disposisi")
+        API->>WS: broadcast PengingatNotification
+        WS-->>UI: Event notifikasi ke channel user Staff
+    end
+
     API-->>UI: Data disposisi terbaru
     UI-->>Asisten: Status diperbarui
 ```
@@ -320,9 +330,9 @@ sequenceDiagram
     participant WS as Reverb (WebSocket)
     participant UI_B as Frontend Recipient (Vue)
 
-    Sender->>UI_A: Tambah Surat / Kegiatan
-    UI_A->>API: POST /api/surat | POST /api/kegiatan
-    API->>DB: Simpan data + buat Pengingat otomatis (source = "surat"/"kegiatan")
+    Sender->>UI_A: Tambah Surat / Kegiatan / Asisten serahkan/tolak Disposisi
+    UI_A->>API: POST /api/surat | POST /api/kegiatan | PATCH /api/disposisi/{id}
+    API->>DB: Simpan data + buat Pengingat otomatis (source = "surat"/"kegiatan"/"disposisi")
     API->>WS: broadcast(PengingatNotification)
     WS->>WS: Kirim ke private channel App.Models.User.{id}
     WS-->>UI_B: Event 'pengingat.notification'
@@ -687,7 +697,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | S-08 | Ubah surat | Field tidak valid | `PUT /api/surat/{id}` | `422` | **Gagal** — error validasi |
 | S-09 | Hapus surat | Data tersedia | `DELETE /api/surat/{id}` | `204` | **Berhasil** — data terhapus (tanpa konten) |
 
-### 5.3 Kelola Disposisi (Ubah / Serahkan / Tolak / Hapus)
+### 5.3 Kelola Disposisi (Lihat / Serahkan / Tolak)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -695,16 +705,15 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | D-02 | Lihat disposisi per surat | Filter `?surat_id=` | `GET /api/disposisi?surat_id=5` | `200` | **Berhasil** — hasil terfilter |
 | D-03 | Detail disposisi | Data tersedia | `GET /api/disposisi/{id}` | `200` | **Berhasil** — data + relasi surat |
 | D-04 | Detail disposisi | Data tidak ditemukan | `GET /api/disposisi/999` | `404` | **Gagal** — disposisi tidak ada |
-| D-05 | Staff ubah disposisi | Data valid | `PUT /api/disposisi/{id}` | `200` | **Berhasil** — data terupdate |
-| D-06 | Staff ubah (bukan ditolak) | `keterangan != ditolak` | `PUT /api/disposisi/{id}` | `200` | **Berhasil** — `alasan` otomatis dikosongkan |
-| D-07 | Staff ubah | Field tidak valid | `PUT /api/disposisi/{id}` | `422` | **Gagal** — error validasi |
-| D-08 | Asisten **menyerahkan** | `keterangan = diserahkan` | `PUT /api/disposisi/{id}` | `200` | **Berhasil** — status Diserahkan |
-| D-09 | Asisten **menolak** | `keterangan = ditolak` + `alasan` | `PUT /api/disposisi/{id}` | `200` | **Berhasil** — status Ditolak + alasan |
+| D-05 | Staff ubah disposisi | Bukan role asisten | `PUT /api/disposisi/{id}` | `403` | **Gagal** — staff tidak memiliki akses mengubah |
+| D-06 | Staff serahkan/tolak | Bukan role asisten | `PUT /api/disposisi/{id}` | `403` | **Gagal** — staff tidak memiliki akses |
+| D-07 | Staff/Asisten hapus | Route tidak terdaftar | `DELETE /api/disposisi/{id}` | `405` | **Gagal** — method tidak diizinkan |
+| D-08 | Asisten **menyerahkan** | `keterangan = diserahkan` + `tandatangan_penerima` + `tandatangan_dituju` | `PUT /api/disposisi/{id}` | `200` | **Berhasil** — status Diserahkan + Penerima/Dituju tersimpan + **Pengingat otomatis ke seluruh Staff** |
+| D-09 | Asisten **menolak** | `keterangan = ditolak` + `alasan` | `PUT /api/disposisi/{id}` | `200` | **Berhasil** — status Ditolak + alasan + **Pengingat otomatis ke seluruh Staff** |
 | D-10 | Asisten menolak | Tanpa `alasan` | `PUT /api/disposisi/{id}` | `422` | **Gagal** — alasan wajib diisi saat ditolak |
+| D-10a | Asisten **menyerahkan** | Tanpa `tandatangan_penerima`/`tandatangan_dituju` | `PUT /api/disposisi/{id}` | `422` | **Gagal** — Penerima & Dituju wajib diisi saat diserahkan |
 | D-11 | Asisten memakai field staff | `keterangan = diterima` | `PUT /api/disposisi/{id}` | `422` | **Gagal** — tidak diizinkan untuk role asisten |
-| D-12 | Role lain (OPD) ubah | Bukan staff/asisten | `PUT /api/disposisi/{id}` | `403` | **Gagal** — tidak memiliki akses |
-| D-13 | Staff hapus disposisi | Data tersedia | `DELETE /api/disposisi/{id}` | `204` | **Berhasil** — data terhapus |
-| D-14 | Asisten hapus disposisi | Bukan role staff | `DELETE /api/disposisi/{id}` | `403` | **Gagal** — tidak memiliki akses |
+| D-12 | Role lain (OPD) ubah | Bukan asisten | `PUT /api/disposisi/{id}` | `403` | **Gagal** — tidak memiliki akses |
 
 ### 5.4 Kelola Kegiatan (Buat / Ubah / Hapus) + Auto Cek Bentrok Jadwal
 
@@ -819,12 +828,13 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
 | UAT-18 | Lihat daftar disposisi | Login sebagai Staff/Asisten, buka menu **Disposisi** | Daftar disposisi (beserta status & alasan) ditampilkan | | |
-| UAT-19 | Edit disposisi (Staff) | Staff mengubah Penerima/Dituju/Keterangan, klik **Simpan** | Data terupdate | | |
-| UAT-20 | Serahkan disposisi (Asisten) | Asisten klik **Menyerahkan** | Status menjadi **Diserahkan** | | |
+| UAT-19 | Staff tidak dapat mengubah disposisi | Staff membuka data disposisi | Tombol **Edit**/aksi ubah tidak tersedia untuk Staff | | |
+| UAT-20 | Serahkan disposisi (Asisten) | Asisten klik **Menyerahkan**, isi **Penerima** & **Dituju**, simpan | Status menjadi **Diserahkan** + Penerima/Dituju tersimpan + notifikasi otomatis ke Staff | | |
+| UAT-20a | Serahkan tanpa Penerima/Dituju | Asisten klik **Menyerahkan** tanpa mengisi Penerima/Dituju | Form menyerahkan (wajib Penerima & Dituju), simpan diblokir dengan error | | |
 | UAT-21 | Tolak disposisi tanpa alasan | Asisten klik **Menolak** tanpa mengisi alasan | Form menolak (wajib alasan), simpan diblokir dengan error | | |
 | UAT-22 | Tolak disposisi dengan alasan | Asisten klik **Menolak**, isi alasan, simpan | Status menjadi **Ditolak** + alasan tersimpan | | |
-| UAT-23 | Hapus disposisi (Staff) | Staff klik **Hapus**, konfirmasi | Data terhapus | | |
-| UAT-24 | Asisten menghapus disposisi | Asisten mencoba menghapus | Aksi hapus tidak tersedia/ditolak | | |
+| UAT-23 | Tidak ada aksi hapus disposisi | Staff/Asisten mencari tombol **Hapus** pada disposisi | Aksi hapus tidak tersedia untuk semua role | | |
+| UAT-24 | Asisten menyerahkan/menolak tanpa kewenangan lain | Asisten mencoba mengubah field data surat lain | Hanya status serahkan/tolak (dan Penerima/Dituju/Alasan) yang dapat diubah | | |
 
 ### 6.4 Kelola Kegiatan & Konfirmasi Kehadiran
 
@@ -870,8 +880,9 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-47 | Lonceng notifikasi tampil | Login sebagai Staff/Asisten/OPD | Ikon lonceng **Notifikasi Pengingat** tampil di header (tidak tampil untuk Admin) | | |
 | UAT-48 | Notifikasi real-time dari **Tambah Surat** | Staff menambah Surat; periksa akun **Asisten Daerah** pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
 | UAT-49 | Notifikasi real-time dari **Tambah Kegiatan** | Staff menambah Kegiatan; periksa akun lain pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
+| UAT-49a | Notifikasi real-time saat **Disposisi diserahkan/ditolak** | Asisten Daerah menyerahkan/menolak disposisi; periksa akun **Staff** pada tab lain (tanpa refresh) | Lonceng bertambah **real-time** dengan badge jumlah belum dibaca | | |
 | UAT-50 | Pengingat manual tidak memicu notifikasi | User menambah Pengingat manual pada halaman Pengingat | Tidak ada lonceng/badge baru (sumber `manual` tidak dinotifikasikan) | | |
-| UAT-51 | Buka daftar notifikasi | Klik lonceng notifikasi | Dropdown berisi daftar notifikasi (label **Surat/Kegiatan**, waktu relatif, tanggal pengingat) | | |
+| UAT-51 | Buka daftar notifikasi | Klik lonceng notifikasi | Dropdown berisi daftar notifikasi (label **Surat/Kegiatan/Disposisi**, waktu relatif, tanggal pengingat) | | |
 | UAT-52 | Baca satu notifikasi | Klik salah satu notifikasi di dropdown | Navigasi ke halaman **Pengingat**, badge unread berkurang satu | | |
 | UAT-53 | Tandai semua dibaca | Klik **Tandai semua dibaca** pada dropdown | Semua notifikasi berstatus dibaca, badge hilang, toast **berhasil** | | |
 | UAT-54 | Hak akses notifikasi | Login sebagai **Admin**, lihat header | Lonceng notifikasi tidak tersedia | | |

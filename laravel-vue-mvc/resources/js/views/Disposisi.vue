@@ -1,10 +1,9 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
-import DisposisiForm from '../components/DisposisiForm.vue';
+import DisposisiApproveForm from '../components/DisposisiApproveForm.vue';
 import DisposisiRejectForm from '../components/DisposisiRejectForm.vue';
 import { useToast } from '../composables/useToast';
-import { useConfirm } from '../composables/useConfirm';
 
 const props = defineProps({
     payload: {
@@ -16,23 +15,20 @@ const props = defineProps({
 const emit = defineEmits(['navigate']);
 
 const user = window.Laravel?.user ?? null;
-const isStaff = user?.role_slug === 'staff';
 const isAsistenDaerah = user?.role_slug === 'asisten_daerah';
 const toast = useToast();
-const { confirm } = useConfirm();
 
 const items = ref([]);
 const loading = ref(false);
 const error = ref('');
 
-const showForm = ref(false);
-const editingItem = ref(null);
+const approvingItem = ref(null);
 const rejectingItem = ref(null);
 
 const keteranganLabels = {
-    diterima: { text: 'Diterima', class: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300' },
-    ditolak: { text: 'Ditolak', class: 'bg-red-500/15 text-red-700 dark:text-red-300' },
-    diserahkan: { text: 'Diserahkan', class: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    diterima: { text: 'Diterima', class: 'bg-cyan-500/15 text-cyan-700 ' },
+    ditolak: { text: 'Ditolak', class: 'bg-red-500/15 text-red-700 ' },
+    diserahkan: { text: 'Diserahkan', class: 'bg-emerald-500/15 text-emerald-700 ' },
 };
 
 const formatTanggal = (value) => {
@@ -59,48 +55,18 @@ const fetchItems = async () => {
     }
 };
 
-const openEdit = (item) => {
-    editingItem.value = item;
-    showForm.value = true;
+const approveItem = (item) => {
+    approvingItem.value = item;
 };
 
-const handleSubmit = async (payload) => {
+const handleApprove = async (payload) => {
     try {
-        await axios.put(`/api/disposisi/${editingItem.value.id}`, payload);
-        showForm.value = false;
-        toast.success('Disposisi berhasil diperbarui.');
-        await fetchItems();
-    } catch (err) {
-        toast.error('Gagal menyimpan data disposisi.');
-    }
-};
-
-const removeItem = async (item) => {
-    const ok = await confirm({
-        title: 'Hapus Disposisi',
-        message: `Hapus disposisi "${item.nomor_surat}"?`,
-        confirmText: 'Hapus',
-        danger: true,
-    });
-    if (!ok) return;
-    try {
-        await axios.delete(`/api/disposisi/${item.id}`);
-        toast.success('Disposisi berhasil dihapus.');
-        await fetchItems();
-    } catch (err) {
-        toast.error('Gagal menghapus disposisi.');
-    }
-};
-
-const approveItem = async (item) => {
-    const ok = await confirm({
-        title: 'Serahkan Disposisi',
-        message: `Serahkan disposisi "${item.nomor_surat}"?`,
-        confirmText: 'Serahkan',
-    });
-    if (!ok) return;
-    try {
-        await axios.patch(`/api/disposisi/${item.id}`, { keterangan: 'diserahkan' });
+        await axios.patch(`/api/disposisi/${approvingItem.value.id}`, {
+            keterangan: 'diserahkan',
+            tandatangan_penerima: payload.tandatangan_penerima,
+            tandatangan_dituju: payload.tandatangan_dituju,
+        });
+        approvingItem.value = null;
         toast.success('Disposisi berhasil diserahkan.');
         await fetchItems();
     } catch (err) {
@@ -144,13 +110,13 @@ onMounted(fetchItems);
                     <h2 class="text-2xl font-display font-bold gradient-brand-text">Disposisi</h2>
                     <button
                         v-if="payload?.surat_id"
-                        class="px-3 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 rounded-full hover:bg-indigo-500/20 transition-colors"
+                        class="px-3 py-1 text-xs font-medium text-indigo-600  bg-indigo-500/10 rounded-full hover:bg-indigo-500/20 transition-colors"
                         @click="emit('navigate', 'disposisi')"
                     >
                         Lihat Semua
                     </button>
                 </div>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p class="mt-1 text-sm text-slate-500 ">
                     Data otomatis dibuat dari Surat
                 </p>
             </div>
@@ -158,46 +124,46 @@ onMounted(fetchItems);
 
         <div
             v-if="error"
-            class="mb-4 p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm rounded-xl backdrop-blur"
+            class="mb-4 p-4 bg-red-50/80  border border-red-200  text-red-700  text-sm rounded-xl backdrop-blur"
         >
             {{ error }}
         </div>
 
-        <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/20 overflow-hidden">
-            <div v-if="loading" class="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div class="glass rounded-2xl border border-slate-200/70  overflow-hidden">
+            <div v-if="loading" class="p-8 text-center text-sm text-slate-500 ">
                 Memuat data...
             </div>
 
             <div
                 v-else-if="items.length === 0"
-                class="p-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                class="p-8 text-center text-sm text-slate-500 "
             >
                 Belum ada data disposisi.
             </div>
 
             <div v-else class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-white/20">
-                    <thead class="bg-slate-50/70 dark:bg-white/10">
+                <table class="min-w-full divide-y divide-slate-200 ">
+                    <thead class="bg-slate-50/70 ">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">No</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nomor Surat</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Asal Surat</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Perihal</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kepada</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penerima</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dituju</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Keterangan</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">No</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Nomor Surat</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Asal Surat</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Perihal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Kepada</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Penerima</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Dituju</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Keterangan</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500  uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-white/20">
+                    <tbody class="divide-y divide-slate-200 ">
                         <tr
                             v-for="(item, index) in items"
                             :key="item.id"
-                            class="hover:bg-slate-50/60 dark:hover:bg-white/5 transition-colors"
+                            class="hover:bg-slate-50/60  transition-colors"
                         >
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 ">
                                 {{ index + 1 }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ formatTanggal(item.tanggal) }}</td>
@@ -210,42 +176,28 @@ onMounted(fetchItems);
                             <td class="px-6 py-4 text-sm">
                                 <span
                                     class="inline-block px-2.5 py-1 rounded-full text-xs font-medium"
-                                    :class="keteranganLabels[item.keterangan]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
+                                    :class="keteranganLabels[item.keterangan]?.class ?? 'bg-slate-500/10 text-slate-600 '"
                                 >
                                     {{ keteranganLabels[item.keterangan]?.text ?? item.keterangan }}
                                 </span>
                                 <p
                                     v-if="item.keterangan === 'ditolak' && item.alasan"
-                                    class="mt-1 text-xs text-red-600 dark:text-red-400"
+                                    class="mt-1 text-xs text-red-600 "
                                 >
                                     {{ item.alasan }}
                                 </p>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <template v-if="isStaff">
-                                    <button
-                                        @click="openEdit(item)"
-                                        class="text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mr-3"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        @click="removeItem(item)"
-                                        class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                                    >
-                                        Hapus
-                                    </button>
-                                </template>
-                                <template v-else-if="isAsistenDaerah">
+                                <template v-if="isAsistenDaerah">
                                     <button
                                         @click="approveItem(item)"
-                                        class="text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mr-3"
+                                        class="text-emerald-500  hover:text-emerald-700  mr-3"
                                     >
                                         Menyerahkan
                                     </button>
                                     <button
                                         @click="rejectItem(item)"
-                                        class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                                        class="text-red-500  hover:text-red-700 "
                                     >
                                         Menolak
                                     </button>
@@ -257,11 +209,11 @@ onMounted(fetchItems);
             </div>
         </div>
 
-        <DisposisiForm
-            v-if="showForm"
-            :item="editingItem"
-            @submit="handleSubmit"
-            @close="showForm = false"
+        <DisposisiApproveForm
+            v-if="approvingItem"
+            :item="approvingItem"
+            @submit="handleApprove"
+            @close="approvingItem = null"
         />
 
         <DisposisiRejectForm

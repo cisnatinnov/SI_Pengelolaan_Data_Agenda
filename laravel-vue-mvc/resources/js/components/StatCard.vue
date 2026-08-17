@@ -16,9 +16,9 @@ defineProps({
             class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-2xl opacity-30"
             :class="accent"
         ></div>
-        <p class="relative text-sm font-medium text-slate-500 dark:text-slate-400">{{ title }}</p>
+        <p class="relative text-sm font-medium text-slate-500 ">{{ title }}</p>
         <p class="relative mt-2 text-3xl font-bold gradient-brand-text">{{ value }}</p>
-        <p v-if="subtitle" class="relative mt-1 text-xs text-slate-400 dark:text-slate-500">
+        <p v-if="subtitle" class="relative mt-1 text-xs text-slate-400 ">
             {{ subtitle }}
         </p>
     </div>

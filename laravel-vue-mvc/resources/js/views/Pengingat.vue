@@ -22,14 +22,14 @@ const showForm = ref(false);
 const editingItem = ref(null);
 
 const prioritasLabels = {
-    rendah: { text: 'Rendah', class: 'bg-slate-500/10 text-slate-600 dark:text-slate-300' },
-    sedang: { text: 'Sedang', class: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
-    tinggi: { text: 'Tinggi', class: 'bg-red-500/15 text-red-700 dark:text-red-300' },
+    rendah: { text: 'Rendah', class: 'bg-slate-500/10 text-slate-600 ' },
+    sedang: { text: 'Sedang', class: 'bg-amber-500/15 text-amber-700 ' },
+    tinggi: { text: 'Tinggi', class: 'bg-red-500/15 text-red-700 ' },
 };
 
 const statusLabels = {
-    pending: { text: 'Pending', class: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300' },
-    selesai: { text: 'Selesai', class: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    pending: { text: 'Pending', class: 'bg-cyan-500/15 text-cyan-700 ' },
+    selesai: { text: 'Selesai', class: 'bg-emerald-500/15 text-emerald-700 ' },
 };
 
 const formatTanggal = (value) => {
@@ -104,7 +104,7 @@ onMounted(fetchItems);
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
             <div>
                 <h2 class="text-2xl font-display font-bold gradient-brand-text">Pengingat</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Kelola data pengingat</p>
+                <p class="mt-1 text-sm text-slate-500 ">Kelola data pengingat</p>
             </div>
             <button
                 @click="openCreate"
@@ -116,43 +116,43 @@ onMounted(fetchItems);
 
         <div
             v-if="error"
-            class="mb-4 p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm rounded-xl backdrop-blur"
+            class="mb-4 p-4 bg-red-50/80  border border-red-200  text-red-700  text-sm rounded-xl backdrop-blur"
         >
             {{ error }}
         </div>
 
-        <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/20 overflow-hidden">
-            <div v-if="loading" class="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div class="glass rounded-2xl border border-slate-200/70  overflow-hidden">
+            <div v-if="loading" class="p-8 text-center text-sm text-slate-500 ">
                 Memuat data...
             </div>
 
             <div
                 v-else-if="items.length === 0"
-                class="p-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                class="p-8 text-center text-sm text-slate-500 "
             >
                 Belum ada data pengingat.
             </div>
 
             <div v-else class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-white/20">
-                    <thead class="bg-slate-50/70 dark:bg-white/10">
+                <table class="min-w-full divide-y divide-slate-200 ">
+                    <thead class="bg-slate-50/70 ">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">No</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Judul</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Deskripsi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tanggal Pengingat</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Prioritas</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">No</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Judul</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Deskripsi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Tanggal Pengingat</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Prioritas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500  uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-white/20">
+                    <tbody class="divide-y divide-slate-200 ">
                         <tr
                             v-for="(item, index) in items"
                             :key="item.id"
-                            class="hover:bg-slate-50/60 dark:hover:bg-white/5 transition-colors"
+                            class="hover:bg-slate-50/60  transition-colors"
                         >
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 ">
                                 {{ index + 1 }}
                             </td>
                             <td class="px-6 py-4 text-sm font-medium">{{ item.judul }}</td>
@@ -163,7 +163,7 @@ onMounted(fetchItems);
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                     class="inline-block px-2.5 py-1 rounded-full text-xs font-medium"
-                                    :class="prioritasLabels[item.prioritas]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
+                                    :class="prioritasLabels[item.prioritas]?.class ?? 'bg-slate-500/10 text-slate-600 '"
                                 >
                                     {{ prioritasLabels[item.prioritas]?.text ?? item.prioritas }}
                                 </span>
@@ -171,7 +171,7 @@ onMounted(fetchItems);
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                     class="inline-block px-2.5 py-1 rounded-full text-xs font-medium"
-                                    :class="statusLabels[item.status]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
+                                    :class="statusLabels[item.status]?.class ?? 'bg-slate-500/10 text-slate-600 '"
                                 >
                                     {{ statusLabels[item.status]?.text ?? item.status }}
                                 </span>
@@ -179,13 +179,13 @@ onMounted(fetchItems);
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <button
                                     @click="openEdit(item)"
-                                    class="text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mr-3"
+                                    class="text-indigo-500  hover:text-indigo-700  mr-3"
                                 >
                                     Edit
                                 </button>
                                 <button
                                     @click="removeItem(item)"
-                                    class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                                    class="text-red-500  hover:text-red-700 "
                                 >
                                     Hapus
                                 </button>

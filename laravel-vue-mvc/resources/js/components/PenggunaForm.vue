@@ -108,8 +108,8 @@ function submitForm() {
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
         @click.self="emit('close')"
     >
-        <div class="w-full max-w-md glass dark:glass-dark rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20">
+        <div class="w-full max-w-md glass  rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-slate-200 ">
                 <h3 class="text-lg font-display font-bold gradient-brand-text">
                     {{ item ? 'Edit Pengguna' : 'Tambah Pengguna' }}
                 </h3>
@@ -118,7 +118,7 @@ function submitForm() {
             <form novalidate @submit.prevent="submitForm">
                 <div class="px-6 py-4 space-y-4">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="name" class="block text-sm font-medium text-slate-700  mb-1">
                             Nama
                         </label>
                         <input
@@ -135,7 +135,7 @@ function submitForm() {
                     </div>
 
                     <div>
-                        <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="email" class="block text-sm font-medium text-slate-700  mb-1">
                             Email
                         </label>
                         <input
@@ -152,7 +152,7 @@ function submitForm() {
                     </div>
 
                     <div>
-                        <label for="role_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="role_id" class="block text-sm font-medium text-slate-700  mb-1">
                             Role
                         </label>
                         <p v-if="roleError" class="text-xs text-red-500 mb-1">{{ roleError }}</p>
@@ -179,7 +179,7 @@ function submitForm() {
                     </div>
 
                     <div>
-                        <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="password" class="block text-sm font-medium text-slate-700  mb-1">
                             Password
                             <span v-if="item" class="text-xs text-slate-400 font-normal">(kosongkan jika tidak diubah)</span>
                         </label>
@@ -196,7 +196,7 @@ function submitForm() {
                             />
                             <button
                                 type="button"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600  transition-colors"
                                 :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
                                 :title="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
                                 @click="showPassword = !showPassword"
@@ -231,7 +231,7 @@ function submitForm() {
 
                         <template v-if="form.password">
                             <div class="mt-2 flex items-center gap-2">
-                                <div class="flex-1 h-2 rounded-full overflow-hidden bg-slate-200 dark:bg-white/10">
+                                <div class="flex-1 h-2 rounded-full overflow-hidden bg-slate-200 ">
                                     <div
                                         class="h-full transition-all duration-300"
                                         :class="strength.class"
@@ -245,7 +245,7 @@ function submitForm() {
                                     v-for="rule in passwordRules"
                                     :key="rule.label"
                                     class="flex items-center gap-2 text-xs"
-                                    :class="rule.check(form.password) ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'"
+                                    :class="rule.check(form.password) ? 'text-emerald-600 ' : 'text-red-500 '"
                                 >
                                     <span>{{ rule.check(form.password) ? '✓' : '○' }}</span>
                                     {{ rule.label }}
@@ -253,7 +253,7 @@ function submitForm() {
                             </ul>
                             <p
                                 v-if="missingRules.length > 0"
-                                class="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400"
+                                class="mt-2 text-xs font-medium text-amber-600 "
                             >
                                 Masih kurang: {{ missingRules.map((rule) => rule.label).join(', ') }}
                             </p>
@@ -261,11 +261,11 @@ function submitForm() {
                     </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
+                <div class="px-6 py-4 border-t border-slate-200  flex justify-end gap-3">
                     <button
                         type="button"
                         @click="emit('close')"
-                        class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/15 transition-colors"
+                        class="px-4 py-2 text-sm font-medium text-slate-700  bg-slate-100  rounded-xl hover:bg-slate-200  transition-colors"
                     >
                         Batal
                     </button>

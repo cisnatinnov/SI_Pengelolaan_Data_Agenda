@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PengingatNotification;
 use App\Models\Disposisi;
+use App\Models\Pengingat;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class DisposisiController extends Controller
@@ -36,69 +39,56 @@ class DisposisiController extends Controller
     {
         $user = $request->user();
 
-        // Asisten Daerah can only sahkan (approve) or tolak (reject) the letter.
-        if ($user->role_slug === 'asisten_daerah') {
-            $data = $request->validate([
-                'keterangan' => ['required', 'string', 'in:diserahkan,ditolak'],
-                'alasan' => ['nullable', 'string', 'max:1000', 'required_if:keterangan,ditolak'],
-            ]);
-
-            $disposisi->update([
-                'keterangan' => $data['keterangan'],
-                'alasan' => $data['keterangan'] === 'ditolak' ? $data['alasan'] : null,
-            ]);
-
-            return $disposisi;
-        }
-
-        if ($user->role_slug !== 'staff') {
+        // Only Asisten Daerah can sahkan (approve) or tolak (reject) the letter.
+        if ($user->role_slug !== 'asisten_daerah') {
             abort(403, 'Anda tidak memiliki akses.');
         }
 
-        $data = $this->validateData($request);
+        $data = $request->validate([
+            'keterangan' => ['required', 'string', 'in:diserahkan,ditolak'],
+            'tandatangan_penerima' => ['nullable', 'string', 'max:255', 'required_if:keterangan,diserahkan'],
+            'tandatangan_dituju' => ['nullable', 'string', 'max:255', 'required_if:keterangan,diserahkan'],
+            'alasan' => ['nullable', 'string', 'max:1000', 'required_if:keterangan,ditolak'],
+        ]);
 
-        // Alasan only applies to rejected letters.
-        if ($data['keterangan'] !== 'ditolak') {
-            $data['alasan'] = null;
-        }
+        $disposisi->update([
+            'keterangan' => $data['keterangan'],
+            'tandatangan_penerima' => $data['keterangan'] === 'diserahkan' ? $data['tandatangan_penerima'] : null,
+            'tandatangan_dituju' => $data['keterangan'] === 'diserahkan' ? $data['tandatangan_dituju'] : null,
+            'alasan' => $data['keterangan'] === 'ditolak' ? $data['alasan'] : null,
+        ]);
 
-        $disposisi->update($data);
+        $this->notifyStaff($disposisi, $data['keterangan'], $data['alasan'] ?? null);
 
         return $disposisi;
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Notify every staff user with a pengingat when a disposisi is
+     * accepted (diserahkan) or rejected (ditolak) by the Asisten Daerah.
      */
-    public function destroy(Request $request, Disposisi $disposisi)
+    private function notifyStaff(Disposisi $disposisi, string $keterangan, ?string $alasan = null): void
     {
-        if ($request->user()->role_slug !== 'staff') {
-            abort(403, 'Anda tidak memiliki akses.');
+        $staffUsers = User::whereHas('role', function ($query) {
+            $query->where('slug', 'staff');
+        })->get();
+
+        foreach ($staffUsers as $user) {
+            $pengingat = Pengingat::create([
+                'user_id' => $user->id,
+                'judul' => $keterangan === 'diserahkan'
+                    ? "Disposisi diserahkan: {$disposisi->nomor_surat}"
+                    : "Disposisi ditolak: {$disposisi->nomor_surat}",
+                'deskripsi' => $keterangan === 'diserahkan'
+                    ? "Disposisi surat \"{$disposisi->perihal}\" telah diserahkan oleh Asisten Daerah."
+                    : "Disposisi surat \"{$disposisi->perihal}\" ditolak oleh Asisten Daerah" . ($alasan ? " dengan alasan: {$alasan}" : '') . '.',
+                'tanggal_pengingat' => now(),
+                'prioritas' => 'sedang',
+                'status' => 'pending',
+                'source' => 'disposisi',
+            ]);
+
+            broadcast(new PengingatNotification($pengingat));
         }
-
-        $disposisi->delete();
-
-        return response()->json(null, 204);
-    }
-
-    /**
-     * Validate the request data.
-     *
-     * @return array<string, mixed>
-     */
-    private function validateData(Request $request): array
-    {
-        return $request->validate([
-            'tanggal' => ['required', 'date'],
-            'nomor_surat' => ['required', 'string', 'max:255'],
-            'asal_surat' => ['required', 'string', 'max:255'],
-            'perihal' => ['required', 'string', 'max:255'],
-            'kepada' => ['required', 'string', 'max:255'],
-            'pembawa_surat' => ['required', 'string', 'max:255'],
-            'tandatangan_penerima' => ['nullable', 'string', 'max:255'],
-            'tandatangan_dituju' => ['nullable', 'string', 'max:255'],
-            'keterangan' => ['required', 'string', 'in:diterima,ditolak,diserahkan'],
-            'alasan' => ['nullable', 'string', 'max:1000', 'required_if:keterangan,ditolak'],
-        ]);
     }
 }

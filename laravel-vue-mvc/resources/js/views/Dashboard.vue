@@ -110,25 +110,25 @@ onMounted(fetchStats);
     <div>
         <div class="mb-6">
             <h2 class="text-2xl font-display font-bold gradient-brand-text">Dashboard</h2>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p class="mt-1 text-sm text-slate-500 ">
                 Ringkasan statistik disposisi dan kegiatan
             </p>
         </div>
 
         <div
             v-if="error"
-            class="mb-4 p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm rounded-xl backdrop-blur"
+            class="mb-4 p-4 bg-red-50/80  border border-red-200  text-red-700  text-sm rounded-xl backdrop-blur"
         >
             {{ error }}
         </div>
 
-        <div v-if="loading" class="glass rounded-2xl p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div v-if="loading" class="glass rounded-2xl p-8 text-center text-sm text-slate-500 ">
             Memuat data...
         </div>
 
         <template v-else>
             <div class="mb-6">
-                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 ">
                     Disposisi
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -144,7 +144,7 @@ onMounted(fetchStats);
             </div>
 
             <div class="mb-6">
-                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 ">
                     Kegiatan
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -160,36 +160,36 @@ onMounted(fetchStats);
             </div>
 
             <div>
-                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 ">
                     Kegiatan per Periode
                 </h3>
-                <div class="glass rounded-2xl border border-slate-200/70 dark:border-white/20 overflow-hidden">
+                <div class="glass rounded-2xl border border-slate-200/70  overflow-hidden">
                     <div
                         v-if="kegiatanPeriode.length === 0"
-                        class="p-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                        class="p-8 text-center text-sm text-slate-500 "
                     >
                         Belum ada data kegiatan.
                     </div>
                     <div v-else class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200 dark:divide-white/20">
-                            <thead class="bg-slate-50/70 dark:bg-white/10">
+                        <table class="min-w-full divide-y divide-slate-200 ">
+                            <thead class="bg-slate-50/70 ">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Periode</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dilaksanakan</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tidak Dilaksanakan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Periode</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Dilaksanakan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500  uppercase tracking-wider">Tidak Dilaksanakan</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-200 dark:divide-white/20">
+                            <tbody class="divide-y divide-slate-200 ">
                                 <tr
                                     v-for="periode in kegiatanPeriode"
                                     :key="periode.key"
-                                    class="hover:bg-slate-50/60 dark:hover:bg-white/5 transition-colors"
+                                    class="hover:bg-slate-50/60  transition-colors"
                                 >
                                     <td class="px-6 py-4 text-sm font-medium capitalize">{{ periode.label }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ periode.total }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 dark:text-emerald-400">{{ periode.terlaksana }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400">{{ periode.tidak }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 ">{{ periode.terlaksana }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 ">{{ periode.tidak }}</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -38,10 +38,10 @@ function submitForm() {
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
         @click.self="emit('close')"
     >
-        <div class="w-full max-w-md glass dark:glass-dark rounded-2xl shadow-2xl">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20">
+        <div class="w-full max-w-md glass  rounded-2xl shadow-2xl">
+            <div class="px-6 py-4 border-b border-slate-200 ">
                 <h3 class="text-lg font-display font-bold gradient-brand-text">Tolak Disposisi</h3>
-                <p v-if="item" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p v-if="item" class="mt-1 text-sm text-slate-500 ">
                     Nomor Surat: {{ item.nomor_surat }}
                 </p>
             </div>
@@ -50,7 +50,7 @@ function submitForm() {
                 <div class="px-6 py-4">
                     <label
                         for="alasan"
-                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                        class="block text-sm font-medium text-slate-700  mb-1"
                     >
                         Alasan Penolakan
                     </label>
@@ -67,11 +67,11 @@ function submitForm() {
                     </p>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
+                <div class="px-6 py-4 border-t border-slate-200  flex justify-end gap-3">
                     <button
                         type="button"
                         @click="emit('close')"
-                        class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/15 transition-colors"
+                        class="px-4 py-2 text-sm font-medium text-slate-700  bg-slate-100  rounded-xl hover:bg-slate-200  transition-colors"
                     >
                         Batal
                     </button>

@@ -1,9 +1,6 @@
 import './bootstrap';
 import { createApp } from 'vue';
 import App from './App.vue';
-import { init } from './composables/useTheme';
-
-init();
 
 if ('serviceWorker' in navigator) {
     if (import.meta.env.PROD) {

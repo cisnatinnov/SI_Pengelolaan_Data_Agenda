@@ -138,7 +138,8 @@ def main():
         "Saat salah satu role menambah Kegiatan, sistem otomatis membuat Pengingat untuk semua role.",
         "Saat menambah Kegiatan, sistem otomatis melakukan Cek Bentrok Jadwal: jika sudah ada kegiatan lain pada tanggal dan jam yang sama, pembuatan kegiatan ditolak.",
         "Hanya OPD yang dapat melakukan Konfirmasi Kehadiran kegiatan (hadir / tidak), tercatat per akun OPD. Role lain dapat melihat rekap dan daftar OPD yang mengonfirmasi.",
-        "Disposisi dapat Diserahkan atau Ditolak (wajib alasan) oleh Asisten Daerah.",
+        "Disposisi dapat Diserahkan atau Ditolak (wajib alasan) oleh Asisten Daerah. Saat Diserahkan, Asisten Daerah wajib mengisi Penerima (tandatangan_penerima) dan Dituju (tandatangan_dituju). Sistem otomatis membuat Pengingat untuk seluruh akun Staff.",
+        "Staff hanya dapat melihat Disposisi: tidak dapat mengubah, menyerahkan/menolak, maupun menghapus. Hanya Asisten Daerah yang dapat menyerahkan/menolak; tidak ada role yang dapat menghapus disposisi.",
         "Lonceng Notifikasi Pengingat tersedia di header untuk role Staff, Asisten Daerah, dan OPD.",
         "Notifikasi Real-Time (via Laravel Reverb + Laravel Echo) hanya aktif untuk pengingat yang dibuat otomatis dari form Tambah Surat (source = surat) dan Tambah Kegiatan (source = kegiatan). Pengingat yang dibuat manual tidak memicu notifikasi.",
         "Setiap pengingat otomatis dilengkapi status dibaca / belum dibaca (read_at) dan dapat ditandai dibaca per item atau semuanya."
@@ -152,7 +153,7 @@ def main():
     add_heading_with_style(doc, "Aktor", 1)
     aktor_data = [
         ["Admin", "Mengelola pengguna & role. Tidak memiliki akses pengingat/notifikasi."],
-        ["Staff", "Mengelola surat, disposisi, kegiatan, dan pengingat pribadi; menerima notifikasi pengingat real-time."],
+        ["Staff", "Mengelola surat dan kegiatan, melihat disposisi, dan mengelola pengingat pribadi; menerima notifikasi pengingat real-time."],
         ["Asisten Daerah", "Meninjau disposisi (menyerahkan/menolak), mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time."],
         ["OPD", "Mengonfirmasi kehadiran kegiatan, mengelola pengingat pribadi, dan menerima notifikasi pengingat real-time."]
     ]
@@ -190,7 +191,7 @@ def main():
 
     # 2.4
     add_heading_with_style(doc, "2.4 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak)", 2)
-    add_diagram(doc, "06_2_4_asisten_daerah_meninjau_disposisi_serahkan_tolak.png", "Gambar: Sequence Diagram Asisten Daerah Meninjau Disposisi")
+    add_diagram(doc, "06_2_4_asisten_daerah_meninjau_disposisi_serahkan_tolak_pengingat_staff.png", "Gambar: Sequence Diagram Asisten Daerah Meninjau Disposisi")
 
     # 2.5
     add_heading_with_style(doc, "2.5 Staff (atau Role Lain) Menambah Kegiatan → Auto Cek Jadwal & Pengingat", 2)
@@ -330,21 +331,20 @@ def main():
             ["S-08", "Ubah surat", "Field tidak valid", "PUT /api/surat/{id}", "422", "Gagal — error validasi"],
             ["S-09", "Hapus surat", "Data tersedia", "DELETE /api/surat/{id}", "204", "Berhasil — data terhapus"],
         ]),
-        ("5.3 Kelola Disposisi", [
+        ("5.3 Kelola Disposisi (Lihat / Serahkan / Tolak)", [
             ["D-01", "Lihat daftar disposisi", "Terautentikasi", "GET /api/disposisi", "200", "Berhasil — array disposisi"],
             ["D-02", "Lihat disposisi per surat", "Filter ?surat_id=", "GET /api/disposisi?surat_id=5", "200", "Berhasil — hasil terfilter"],
             ["D-03", "Detail disposisi", "Data tersedia", "GET /api/disposisi/{id}", "200", "Berhasil — data + relasi surat"],
             ["D-04", "Detail disposisi", "Data tidak ditemukan", "GET /api/disposisi/999", "404", "Gagal — disposisi tidak ada"],
-            ["D-05", "Staff ubah disposisi", "Data valid", "PUT /api/disposisi/{id}", "200", "Berhasil — data terupdate"],
-            ["D-06", "Staff ubah (bukan ditolak)", "keterangan != ditolak", "PUT /api/disposisi/{id}", "200", "Berhasil — alasan dikosongkan"],
-            ["D-07", "Staff ubah", "Field tidak valid", "PUT /api/disposisi/{id}", "422", "Gagal — error validasi"],
-            ["D-08", "Asisten menyerahkan", "keterangan = diserahkan", "PUT /api/disposisi/{id}", "200", "Berhasil — status Diserahkan"],
-            ["D-09", "Asisten menolak", "keterangan = ditolak + alasan", "PUT /api/disposisi/{id}", "200", "Berhasil — status Ditolak + alasan"],
-            ["D-10", "Asisten menolak", "Tanpa alasan", "PUT /api/disposisi/{id}", "422", "Gagal — alasan wajib diisi"],
-            ["D-11", "Asisten memakai field staff", "keterangan = diterima", "PUT /api/disposisi/{id}", "422", "Gagal — tidak diizinkan"],
-            ["D-12", "Role lain (OPD) ubah", "Bukan staff/asisten", "PUT /api/disposisi/{id}", "403", "Gagal — tidak memiliki akses"],
-            ["D-13", "Staff hapus disposisi", "Data tersedia", "DELETE /api/disposisi/{id}", "204", "Berhasil — data terhapus"],
-            ["D-14", "Asisten hapus disposisi", "Bukan role staff", "DELETE /api/disposisi/{id}", "403", "Gagal — tidak memiliki akses"],
+            ["D-05", "Staff ubah disposisi", "Bukan role asisten", "PUT /api/disposisi/{id}", "403", "Gagal — staff tidak memiliki akses mengubah"],
+            ["D-06", "Staff serahkan/tolak", "Bukan role asisten", "PUT /api/disposisi/{id}", "403", "Gagal — staff tidak memiliki akses"],
+            ["D-07", "Staff/Asisten hapus", "Route tidak terdaftar", "DELETE /api/disposisi/{id}", "405", "Gagal — method tidak diizinkan"],
+            ["D-08", "Asisten menyerahkan", "keterangan = diserahkan + tandatangan_penerima + tandatangan_dituju", "PUT /api/disposisi/{id}", "200", "Berhasil — status Diserahkan + Penerima/Dituju tersimpan + Pengingat otomatis ke seluruh Staff"],
+            ["D-09", "Asisten menolak", "keterangan = ditolak + alasan", "PUT /api/disposisi/{id}", "200", "Berhasil — status Ditolak + alasan + Pengingat otomatis ke seluruh Staff"],
+            ["D-10", "Asisten menolak", "Tanpa alasan", "PUT /api/disposisi/{id}", "422", "Gagal — alasan wajib diisi saat ditolak"],
+            ["D-10a", "Asisten menyerahkan", "Tanpa tandatangan_penerima/dituju", "PUT /api/disposisi/{id}", "422", "Gagal — Penerima & Dituju wajib diisi saat diserahkan"],
+            ["D-11", "Asisten memakai field staff", "keterangan = diterima", "PUT /api/disposisi/{id}", "422", "Gagal — tidak diizinkan untuk role asisten"],
+            ["D-12", "Role lain (OPD) ubah", "Bukan asisten", "PUT /api/disposisi/{id}", "403", "Gagal — tidak memiliki akses"],
         ]),
         ("5.4 Kelola Kegiatan", [
             ["K-01", "Lihat daftar kegiatan", "Semua role", "GET /api/kegiatan", "200", "Berhasil — daftar + hadir_count/tidak_count"],
@@ -444,12 +444,13 @@ def main():
 
     add_uat_table(doc, "6.3 Kelola Disposisi (Staff / Asisten Daerah)", [
         ["UAT-18", "Lihat daftar disposisi", "Login sebagai Staff/Asisten, buka menu Disposisi", "Daftar disposisi (status & alasan) ditampilkan", "", ""],
-        ["UAT-19", "Edit disposisi (Staff)", "Staff mengubah Penerima/Dituju/Keterangan, klik Simpan", "Data terupdate", "", ""],
+        ["UAT-19", "Staff tidak dapat mengubah disposisi", "Staff membuka data disposisi", "Tombol Edit/aksi ubah tidak tersedia untuk Staff", "", ""],
         ["UAT-20", "Serahkan disposisi (Asisten)", "Asisten klik Menyerahkan", "Status menjadi Diserahkan", "", ""],
+        ["UAT-20a", "Serahkan tanpa Penerima/Dituju", "Asisten klik Menyerahkan tanpa mengisi Penerima/Dituju", "Form menyerahkan (wajib Penerima & Dituju), simpan diblokir dengan error", "", ""],
         ["UAT-21", "Tolak disposisi tanpa alasan", "Asisten klik Menolak tanpa mengisi alasan", "Form menolak (wajib alasan), simpan diblokir dengan error", "", ""],
         ["UAT-22", "Tolak disposisi dengan alasan", "Asisten klik Menolak, isi alasan, simpan", "Status menjadi Ditolak + alasan tersimpan", "", ""],
-        ["UAT-23", "Hapus disposisi (Staff)", "Staff klik Hapus, konfirmasi", "Data terhapus", "", ""],
-        ["UAT-24", "Asisten menghapus disposisi", "Asisten mencoba menghapus", "Aksi hapus tidak tersedia/ditolak", "", ""],
+        ["UAT-23", "Tidak ada aksi hapus disposisi", "Staff/Asisten mencari tombol Hapus pada disposisi", "Aksi hapus tidak tersedia untuk semua role", "", ""],
+        ["UAT-24", "Asisten hanya dapat serahkan/tolak", "Asisten mencoba mengubah field data surat lain", "Hanya status serahkan/tolak (dan Penerima/Dituju/Alasan) yang dapat diubah", "", ""],
     ])
 
     add_uat_table(doc, "6.4 Kelola Kegiatan & Konfirmasi Kehadiran", [

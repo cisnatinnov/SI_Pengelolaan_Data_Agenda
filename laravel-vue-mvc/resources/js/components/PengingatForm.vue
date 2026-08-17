@@ -47,8 +47,8 @@ function submitForm() {
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
         @click.self="emit('close')"
     >
-        <div class="w-full max-w-lg glass dark:glass-dark rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20">
+        <div class="w-full max-w-lg glass  rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-slate-200 ">
                 <h3 class="text-lg font-display font-bold gradient-brand-text">
                     {{ item ? 'Edit Pengingat' : 'Tambah Pengingat' }}
                 </h3>
@@ -57,7 +57,7 @@ function submitForm() {
             <form novalidate @submit.prevent="submitForm">
                 <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label for="judul" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="judul" class="block text-sm font-medium text-slate-700  mb-1">
                             Judul
                         </label>
                         <input
@@ -74,19 +74,19 @@ function submitForm() {
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label for="deskripsi" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="deskripsi" class="block text-sm font-medium text-slate-700  mb-1">
                             Deskripsi
                         </label>
                         <textarea
                             id="deskripsi"
                             v-model="form.deskripsi"
                             rows="3"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            class="w-full rounded-xl border border-slate-300  bg-white  px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none "
                         ></textarea>
                     </div>
 
                     <div>
-                        <label for="tanggal_pengingat" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="tanggal_pengingat" class="block text-sm font-medium text-slate-700  mb-1">
                             Tanggal Pengingat
                         </label>
                         <input
@@ -103,13 +103,13 @@ function submitForm() {
                     </div>
 
                     <div>
-                        <label for="prioritas" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="prioritas" class="block text-sm font-medium text-slate-700  mb-1">
                             Prioritas
                         </label>
                         <select
                             id="prioritas"
                             v-model="form.prioritas"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            class="w-full rounded-xl border border-slate-300  bg-white  px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none "
                         >
                             <option value="rendah">Rendah</option>
                             <option value="sedang">Sedang</option>
@@ -118,13 +118,13 @@ function submitForm() {
                     </div>
 
                     <div>
-                        <label for="status" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <label for="status" class="block text-sm font-medium text-slate-700  mb-1">
                             Status
                         </label>
                         <select
                             id="status"
                             v-model="form.status"
-                            class="w-full rounded-xl border border-slate-300 dark:border-white/30 bg-white dark:bg-slate-800/90 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none dark:text-slate-100"
+                            class="w-full rounded-xl border border-slate-300  bg-white  px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 outline-none "
                         >
                             <option value="pending">Pending</option>
                             <option value="selesai">Selesai</option>
@@ -132,11 +132,11 @@ function submitForm() {
                     </div>
                 </div>
 
-                <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
+                <div class="px-6 py-4 border-t border-slate-200  flex justify-end gap-3">
                     <button
                         type="button"
                         @click="emit('close')"
-                        class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/15 transition-colors"
+                        class="px-4 py-2 text-sm font-medium text-slate-700  bg-slate-100  rounded-xl hover:bg-slate-200  transition-colors"
                     >
                         Batal
                     </button>

@@ -10,11 +10,11 @@ const { state, confirmAction, cancelAction } = useConfirm();
         class="fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
         @click.self="cancelAction"
     >
-        <div class="w-full max-w-sm glass dark:glass-dark rounded-2xl shadow-2xl animate-pop-in">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-white/20 flex items-center gap-3">
+        <div class="w-full max-w-sm glass  rounded-2xl shadow-2xl animate-pop-in">
+            <div class="px-6 py-4 border-b border-slate-200  flex items-center gap-3">
                 <span
                     v-if="state.danger"
-                    class="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0"
+                    class="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/15 text-red-600  shrink-0"
                 >
                     <svg
                         viewBox="0 0 24 24"
@@ -30,14 +30,14 @@ const { state, confirmAction, cancelAction } = useConfirm();
             </div>
 
             <div class="px-6 py-4">
-                <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{{ state.message }}</p>
+                <p class="text-sm text-slate-700  leading-relaxed">{{ state.message }}</p>
             </div>
 
-            <div class="px-6 py-4 border-t border-slate-200 dark:border-white/20 flex justify-end gap-3">
+            <div class="px-6 py-4 border-t border-slate-200  flex justify-end gap-3">
                 <button
                     type="button"
                     @click="cancelAction"
-                    class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/15 transition-colors"
+                    class="px-4 py-2 text-sm font-medium text-slate-700  bg-slate-100  rounded-xl hover:bg-slate-200  transition-colors"
                 >
                     {{ state.cancelText }}
                 </button>

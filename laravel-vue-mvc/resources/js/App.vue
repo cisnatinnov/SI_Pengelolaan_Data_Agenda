@@ -70,17 +70,17 @@ const toggleSidebar = () => {
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div class="min-h-screen flex flex-col bg-slate-100  text-slate-900 ">
         <div class="fixed inset-0 pointer-events-none overflow-hidden">
-            <div class="absolute inset-0 bg-grid bg-grid-faded anim-grid-pan opacity-60 dark:opacity-40"></div>
+            <div class="absolute inset-0 bg-grid bg-grid-faded anim-grid-pan opacity-60 "></div>
             <div
-                class="absolute -top-32 -left-32 w-[36rem] h-[36rem] rounded-full bg-cyan-400/20 blur-3xl dark:bg-cyan-500/10"
+                class="absolute -top-32 -left-32 w-[36rem] h-[36rem] rounded-full bg-cyan-400/20 blur-3xl "
             ></div>
             <div
-                class="absolute top-1/3 -right-40 w-[32rem] h-[32rem] rounded-full bg-fuchsia-400/15 blur-3xl dark:bg-fuchsia-600/10"
+                class="absolute top-1/3 -right-40 w-[32rem] h-[32rem] rounded-full bg-fuchsia-400/15 blur-3xl "
             ></div>
             <div
-                class="absolute bottom-0 left-1/3 w-[28rem] h-[28rem] rounded-full bg-indigo-400/15 blur-3xl dark:bg-indigo-600/10"
+                class="absolute bottom-0 left-1/3 w-[28rem] h-[28rem] rounded-full bg-indigo-400/15 blur-3xl "
             ></div>
         </div>
 

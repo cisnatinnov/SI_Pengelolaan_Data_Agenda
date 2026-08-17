@@ -6,9 +6,9 @@
         <title>Offline - {{ config('app.name', 'Laravel') }}</title>
         @vite(['resources/css/app.css'])
     </head>
-    <body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <body class="bg-slate-100  text-slate-900 ">
         <main class="min-h-screen flex items-center justify-center p-6">
-            <div class="glass dark:glass-dark rounded-2xl p-10 text-center max-w-sm w-full border border-slate-200 dark:border-white/10">
+            <div class="glass  rounded-2xl p-10 text-center max-w-sm w-full border border-slate-200 ">
                 <div class="mx-auto mb-4 w-16 h-16 rounded-full gradient-brand flex items-center justify-center">
                     <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" class="w-8 h-8">
                         <path d="M12 3v10m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round" />
@@ -16,7 +16,7 @@
                     </svg>
                 </div>
                 <h1 class="font-display font-bold text-xl gradient-brand-text mb-2">Anda Sedang Offline</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">
+                <p class="text-sm text-slate-500 ">
                     Periksa koneksi internet Anda lalu muat ulang halaman.
                 </p>
                 <a

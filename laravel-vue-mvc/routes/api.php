@@ -9,7 +9,8 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
-    Route::apiResource('disposisi', DisposisiController::class)->except(['store']);
+    // Staff can only view disposisi; only Asisten Daerah updates it (serahkan/tolak). No role deletes it.
+    Route::apiResource('disposisi', DisposisiController::class)->except(['store', 'destroy']);
     Route::apiResource('surat', SuratController::class);
 
     // All roles can read kegiatan; only staff can create/update/delete.

@@ -23,8 +23,9 @@ const toast = useToast();
 let channel = null;
 
 const sourceLabels = {
-    surat: { text: 'Surat', class: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300' },
-    kegiatan: { text: 'Kegiatan', class: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300' },
+    surat: { text: 'Surat', class: 'bg-cyan-500/15 text-cyan-700 ' },
+    kegiatan: { text: 'Kegiatan', class: 'bg-indigo-500/15 text-indigo-700 ' },
+    disposisi: { text: 'Disposisi', class: 'bg-emerald-500/15 text-emerald-700 ' },
 };
 
 const formatTanggal = (value) => {
@@ -128,7 +129,7 @@ onUnmounted(() => {
 <template>
     <div ref="container" class="relative">
         <button
-            class="relative p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
+            class="relative p-2 rounded-lg text-slate-600  hover:bg-slate-200/60  transition-colors"
             @click.stop="toggleOpen"
             aria-label="Notifikasi pengingat"
             :title="'Notifikasi (' + unreadCount + ' belum dibaca)'"
@@ -152,16 +153,16 @@ onUnmounted(() => {
         <transition name="fade">
             <div
                 v-if="open"
-                class="absolute right-0 mt-2 w-80 sm:w-96 glass dark:glass-dark rounded-2xl shadow-2xl border border-slate-200/70 dark:border-white/20 overflow-hidden z-50"
+                class="absolute right-0 mt-2 w-80 sm:w-96 glass  rounded-2xl shadow-2xl border border-slate-200/70  overflow-hidden z-50"
                 @click.stop
             >
-                <div class="px-4 py-3 border-b border-slate-200 dark:border-white/20 flex items-center justify-between">
+                <div class="px-4 py-3 border-b border-slate-200  flex items-center justify-between">
                     <h3 class="text-sm font-display font-bold gradient-brand-text">Notifikasi Pengingat</h3>
                     <button
                         v-if="unreadCount > 0"
                         @click="markAllAsRead"
                         :disabled="loading"
-                        class="text-xs font-medium text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 disabled:opacity-50"
+                        class="text-xs font-medium text-indigo-500  hover:text-indigo-700  disabled:opacity-50"
                     >
                         {{ loading ? 'Memproses...' : 'Tandai semua dibaca' }}
                     </button>
@@ -170,7 +171,7 @@ onUnmounted(() => {
                 <div class="max-h-80 overflow-y-auto">
                     <div
                         v-if="notifications.length === 0"
-                        class="p-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                        class="p-8 text-center text-sm text-slate-500 "
                     >
                         Belum ada notifikasi.
                     </div>
@@ -178,16 +179,16 @@ onUnmounted(() => {
                     <button
                         v-for="item in notifications"
                         :key="item.id"
-                        class="w-full text-left px-4 py-3 border-b border-slate-200/60 dark:border-white/10 hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors"
+                        class="w-full text-left px-4 py-3 border-b border-slate-200/60  hover:bg-slate-50/80  transition-colors"
                         @click="openPengingat(item)"
                     >
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="text-sm font-medium truncate">{{ item.judul }}</p>
-                                <p v-if="item.deskripsi" class="mt-0.5 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                                <p v-if="item.deskripsi" class="mt-0.5 text-xs text-slate-500  line-clamp-2">
                                     {{ item.deskripsi }}
                                 </p>
-                                <p class="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                <p class="mt-1 text-[11px] text-slate-400 ">
                                     {{ relativeTime(item.created_at) }}
                                 </p>
                             </div>
@@ -199,11 +200,11 @@ onUnmounted(() => {
                         <div class="mt-2 flex items-center gap-2">
                             <span
                                 class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium"
-                                :class="sourceLabels[item.source]?.class ?? 'bg-slate-500/10 text-slate-600 dark:text-slate-300'"
+                                :class="sourceLabels[item.source]?.class ?? 'bg-slate-500/10 text-slate-600 '"
                             >
                                 {{ sourceLabels[item.source]?.text ?? item.source }}
                             </span>
-                            <span class="text-[11px] text-slate-400 dark:text-slate-500">
+                            <span class="text-[11px] text-slate-400 ">
                                 {{ formatTanggal(item.tanggal_pengingat) }}
                             </span>
                         </div>

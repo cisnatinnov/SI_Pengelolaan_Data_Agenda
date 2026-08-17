@@ -7,17 +7,17 @@ const styles = {
     success: {
         icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
         classes:
-            'border-emerald-500/40 text-emerald-700 dark:text-emerald-300',
+            'border-emerald-500/40 text-emerald-700 ',
         iconClasses: 'text-emerald-500',
     },
     error: {
         icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z',
-        classes: 'border-red-500/40 text-red-700 dark:text-red-300',
+        classes: 'border-red-500/40 text-red-700 ',
         iconClasses: 'text-red-500',
     },
     info: {
         icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        classes: 'border-cyan-500/40 text-cyan-700 dark:text-cyan-300',
+        classes: 'border-cyan-500/40 text-cyan-700 ',
         iconClasses: 'text-cyan-500',
     },
 };
@@ -31,7 +31,7 @@ const styles = {
             <div
                 v-for="toast in toasts"
                 :key="toast.id"
-                class="pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-xl glass dark:glass-dark border backdrop-blur-xl animate-toast-in"
+                class="pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-xl glass  border backdrop-blur-xl animate-toast-in"
                 :class="styles[toast.type]?.classes"
             >
                 <svg
@@ -51,7 +51,7 @@ const styles = {
                 <p class="flex-1 text-sm font-medium leading-snug">{{ toast.message }}</p>
                 <button
                     type="button"
-                    class="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    class="shrink-0 text-slate-400 hover:text-slate-600  transition-colors"
                     :aria-label="'Tutup notifikasi'"
                     @click="remove(toast.id)"
                 >
