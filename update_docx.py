@@ -159,6 +159,24 @@ def main():
     ]
     add_table_from_markdown(doc, aktor_data, header=["Aktor", "Deskripsi"])
 
+    # Kebutuhan Fungsional Sistem
+    add_heading_with_style(doc, "Kebutuhan Fungsional Sistem", 1)
+    fr_data = [
+        ["FR-01", "Login & Logout", "Autentikasi pengguna menggunakan email + password (session-based) beserta logout.", "Admin, Staff, Asisten Daerah, OPD"],
+        ["FR-02", "Dashboard", "Menampilkan statistik Disposisi (Total, Diterima, Ditolak, Diserahkan), statistik Kegiatan (Total, Terlaksana, Tidak), dan rekap Kegiatan per Periode.", "Admin, Staff, Asisten Daerah, OPD"],
+        ["FR-03", "Kelola Surat", "Membuat, mengubah, dan menghapus surat. Saat surat baru dibuat, sistem otomatis membuat Disposisi (status Diterima) dan Pengingat untuk seluruh Asisten Daerah.", "Staff"],
+        ["FR-04", "Lihat Disposisi", "Melihat daftar dan detail disposisi beserta status dan alasan.", "Staff, Asisten Daerah"],
+        ["FR-05", "Serahkan Disposisi", "Menyerahkan disposisi disertai Penerima (tandatangan_penerima) dan Dituju (tandatangan_dituju) tanpa alasan. Sistem otomatis membuat Pengingat ke seluruh Staff.", "Asisten Daerah"],
+        ["FR-06", "Tolak Disposisi", "Menolak disposisi disertai Alasan (wajib). Sistem otomatis membuat Pengingat ke seluruh Staff.", "Asisten Daerah"],
+        ["FR-07", "Kelola Kegiatan", "Membuat, mengubah, dan menghapus kegiatan dengan Cek Bentrok Jadwal otomatis (menolak jika tanggal & jam sama). Sistem otomatis membuat Pengingat ke semua role.", "Staff"],
+        ["FR-08", "Konfirmasi Kehadiran", "Mengonfirmasi kehadiran kegiatan (Hadir / Tidak) yang tercatat per akun OPD dan dapat diubah.", "OPD"],
+        ["FR-09", "Lihat Rekap & Daftar OPD", "Melihat rekap jumlah hadir/tidak dan daftar OPD yang mengonfirmasi kehadiran suatu kegiatan.", "Staff, Asisten Daerah"],
+        ["FR-10", "Kelola Pengingat Pribadi", "Membuat, mengubah, menghapus, dan menandai selesai pengingat milik sendiri.", "Staff, Asisten Daerah, OPD"],
+        ["FR-11", "Notifikasi Pengingat Real-Time", "Menerima notifikasi real-time (badge belum dibaca) saat surat/kegiatan/disposisi dibuat atau diubah, serta menandai dibaca per item atau semuanya.", "Staff, Asisten Daerah, OPD"],
+        ["FR-12", "Kelola Pengguna & Role", "Mengelola akun pengguna dan role.", "Admin"],
+    ]
+    add_table_from_markdown(doc, fr_data, header=["Kode", "Kebutuhan Fungsional", "Deskripsi", "Aktor"])
+
     # Use Case Diagram
     add_heading_with_style(doc, "1. Use Case Diagram", 1)
     doc.add_paragraph(
