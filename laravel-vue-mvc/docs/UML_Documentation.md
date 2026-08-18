@@ -51,13 +51,14 @@ Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, Robustness, dan Cl
 ```mermaid
 flowchart TD
     %% ==== Aktor ====
-    Admin([Admin])
-    Staff([Staff])
-    Asisten([Asisten Daerah])
-    OPD([OPD])
+    Admin([👤 Admin])
+    Staff([👤 Staff])
+    Asisten([👤 Asisten Daerah])
+    OPD([👤 OPD])
 
     subgraph Umum
         UC_LOGIN[Login]
+        UC_LOGOUT[Logout]
         UC_DASH[Lihat Dashboard]
     end
 
@@ -72,6 +73,7 @@ flowchart TD
         UC_AUTO_DISP((Auto: Buat Disposisi status Diterima))
         UC_AUTO_NOTIF_ASIST((Auto: Pengingat ke Asisten Daerah))
         UC_AUTO_NOTIF_ALL((Auto: Pengingat ke Semua Role))
+        UC_AUTO_NOTIF_STAFF((Auto: Pengingat ke Staff))
         UC_AUTO_CEK_BENTROK((Auto: Cek Bentrok Jadwal Kegiatan))
         UC_AUTO_BROADCAST((Auto: Broadcast Notifikasi Real-Time))
     end
@@ -97,6 +99,11 @@ flowchart TD
     Asisten --> UC_LOGIN
     OPD --> UC_LOGIN
 
+    Admin --> UC_LOGOUT
+    Staff --> UC_LOGOUT
+    Asisten --> UC_LOGOUT
+    OPD --> UC_LOGOUT
+
     Admin --> UC_DASH
     Staff --> UC_DASH
     Asisten --> UC_DASH
@@ -109,8 +116,12 @@ flowchart TD
     UC_AUTO_NOTIF_ASIST -->|<<include>>| UC_AUTO_BROADCAST
 
     Staff --> UC_DISP_LIHAT
+    Asisten --> UC_DISP_LIHAT
     Asisten --> UC_DISP_SERAH
     Asisten --> UC_DISP_TOLAK
+    UC_DISP_SERAH -->|<<include>>| UC_AUTO_NOTIF_STAFF
+    UC_DISP_TOLAK -->|<<include>>| UC_AUTO_NOTIF_STAFF
+    UC_AUTO_NOTIF_STAFF -->|<<include>>| UC_AUTO_BROADCAST
 
     %% ==== Kegiatan & Kehadiran ====
     Staff --> UC_KEG_CRUD
@@ -143,10 +154,10 @@ Use case berikut memfokuskan pada dua fungsionalitas yang diakses oleh **semua r
 ```mermaid
 flowchart TD
     %% ==== Aktor ====
-    Admin([Admin])
-    Staff([Staff])
-    Asisten([Asisten Daerah])
-    OPD([OPD])
+    Admin([👤 Admin])
+    Staff([👤 Staff])
+    Asisten([👤 Asisten Daerah])
+    OPD([👤 OPD])
 
     subgraph Autentikasi
         UC_LOGIN[Login]
@@ -186,7 +197,7 @@ flowchart TD
 
 ## 2. Sequence Diagram
 
-### 2.1 Login (Autentikasi Pengguna)
+### 2.1 Login & Logout (Autentikasi Pengguna) — FR-01
 
 ```mermaid
 sequenceDiagram
@@ -208,9 +219,17 @@ sequenceDiagram
         API-->>UI: 302 redirect ke /login + pesan "Email atau password salah"
         UI-->>User: Pesan error ditampilkan
     end
+
+    opt Logout
+        User->>UI: Klik ikon Logout
+        UI->>API: POST /logout
+        API->>API: Hapus sesi (auth logout)
+        API-->>UI: 302 redirect ke /login
+        UI-->>User: Halaman login ditampilkan kembali
+    end
 ```
 
-### 2.2 Dashboard (Melihat Statistik Disposisi & Kegiatan)
+### 2.2 Dashboard (Melihat Statistik Disposisi & Kegiatan) — FR-02
 
 ```mermaid
 sequenceDiagram
@@ -228,7 +247,7 @@ sequenceDiagram
     UI-->>User: Kartu statistik & tabel Kegiatan per Periode ditampilkan
 ```
 
-### 2.3 Staff Membuat Surat → Auto Disposisi (Diterima) & Pengingat Asisten Daerah
+### 2.3 Kelola Surat (Buat / Ubah / Hapus) → Auto Disposisi & Pengingat — FR-03
 
 ```mermaid
 sequenceDiagram
@@ -238,23 +257,61 @@ sequenceDiagram
     participant DB as Database
     participant WS as Reverb (WebSocket)
 
-    Staff->>UI: Isi & kirim form Surat
-    UI->>API: POST /api/surat
-    API->>DB: Simpan data Surat
-
-    rect rgb(230, 240, 255)
-        Note over API,DB: Proses otomatis
-        API->>DB: Buat Disposisi (keterangan = "diterima")
-        API->>DB: Buat Pengingat untuk semua user Asisten Daerah (source = "surat")
-        API->>WS: broadcast PengingatNotification
-        WS-->>UI: Event notifikasi ke channel user Asisten Daerah
+    alt Buat Surat
+        Staff->>UI: Isi & kirim form Surat
+        UI->>API: POST /api/surat
+        API->>API: Validasi field surat
+        alt Valid
+            API->>DB: Simpan data Surat
+            rect rgb(230, 240, 255)
+                Note over API,DB: Proses otomatis
+                API->>DB: Buat Disposisi (keterangan = "diterima")
+                API->>DB: Buat Pengingat untuk semua user Asisten Daerah (source = "surat")
+                API->>WS: broadcast PengingatNotification
+                WS-->>UI: Event notifikasi ke channel user Asisten Daerah
+            end
+            API-->>UI: 201 Surat tersimpan
+            UI-->>Staff: Navigasi ke Disposisi (status Diterima otomatis)
+        else Tidak valid
+            API-->>UI: 422 error validasi
+            UI-->>Staff: Pesan error ditampilkan
+        end
+    else Ubah Surat
+        Staff->>UI: Ubah data Surat
+        UI->>API: PUT /api/surat/{id}
+        API->>DB: Update data Surat
+        API-->>UI: 200 Surat diperbarui
+        UI-->>Staff: Daftar surat diperbarui
+    else Hapus Surat
+        Staff->>UI: Klik Hapus & konfirmasi
+        UI->>API: DELETE /api/surat/{id}
+        API->>DB: Hapus Surat (+ Disposisi terkait)
+        API-->>UI: 204 (tanpa konten)
+        UI-->>Staff: Daftar surat diperbarui
     end
-
-    API-->>UI: 201 Surat tersimpan
-    UI-->>Staff: Navigasi ke Disposisi (status Diterima otomatis)
 ```
 
-### 2.4 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak) → Pengingat Staff
+### 2.4 Lihat Disposisi — FR-04
+
+```mermaid
+sequenceDiagram
+    actor Staff
+    actor Asisten as Asisten Daerah
+    participant UI as Frontend (Vue)
+    participant API as API (Laravel)
+    participant DB as Database
+
+    Staff->>UI: Buka halaman Disposisi
+    Asisten->>UI: Buka halaman Disposisi
+    UI->>API: GET /api/disposisi (opsional ?surat_id=)
+    API->>DB: Ambil daftar disposisi + relasi surat
+    DB-->>API: Data disposisi
+    API-->>UI: JSON daftar disposisi
+    UI-->>Staff: Daftar & detail disposisi (status, alasan, Penerima/Dituju)
+    UI-->>Asisten: Daftar & detail disposisi (status, alasan, Penerima/Dituju)
+```
+
+### 2.5 Asisten Daerah Meninjau Disposisi (Serahkan / Tolak) → Pengingat Staff — FR-05 & FR-06
 
 ```mermaid
 sequenceDiagram
@@ -265,9 +322,9 @@ sequenceDiagram
     participant WS as Reverb (WebSocket)
 
     Asisten->>UI: Klik tombol "Menyerahkan" atau "Menolak"
-    alt Diserahkan (wajib Penerima & Dituju)
+    alt Diserahkan (wajib Penerima & Dituju) — FR-05
         UI->>API: PATCH /api/disposisi/{id} { keterangan: "diserahkan", tandatangan_penerima, tandatangan_dituju }
-    else Ditolak (wajib alasan)
+    else Ditolak (wajib alasan) — FR-06
         UI->>API: PATCH /api/disposisi/{id} { keterangan: "ditolak", alasan }
     end
 
@@ -285,7 +342,7 @@ sequenceDiagram
     UI-->>Asisten: Status diperbarui
 ```
 
-### 2.5 Staff (atau Role Lain) Menambah Kegiatan → Auto Cek Jadwal & Pengingat Semua Role
+### 2.6 Kelola Kegiatan (Buat / Ubah / Hapus) dengan Auto Cek Bentrok Jadwal — FR-07
 
 ```mermaid
 sequenceDiagram
@@ -295,27 +352,36 @@ sequenceDiagram
     participant DB as Database
     participant WS as Reverb (WebSocket)
 
-    Staff->>UI: Isi dan kirim form Kegiatan
-    UI->>API: POST /api/kegiatan
+    alt Buat / Ubah Kegiatan
+        Staff->>UI: Isi dan kirim form Kegiatan
+        UI->>API: POST /api/kegiatan | PUT /api/kegiatan/{id}
+        API->>API: Validasi field kegiatan
 
-    rect rgb(230, 240, 255)
-        Note over API,DB: Proses otomatis
-        API->>DB: Cek bentrok jadwal (tanggal dan jam yang sama)
-        alt Jadwal bentrok (sudah ada kegiatan lain)
-            API-->>UI: 422 Jadwal bentrok
-            UI-->>Staff: Perlihatkan pesan error
-        else Jadwal tersedia
-            API->>DB: Simpan data Kegiatan
-            API->>DB: Buat Pengingat untuk SEMUA user (source = "kegiatan")
-            API->>WS: broadcast PengingatNotification
-            WS-->>UI: Event notifikasi ke channel masing-masing user
-            API-->>UI: 201 Kegiatan tersimpan
-            UI-->>Staff: Daftar kegiatan diperbarui
+        rect rgb(230, 240, 255)
+            Note over API,DB: Proses otomatis
+            API->>DB: Cek bentrok jadwal (tanggal dan jam yang sama, selain dirinya sendiri)
+            alt Jadwal bentrok (sudah ada kegiatan lain)
+                API-->>UI: 422 Jadwal bentrok
+                UI-->>Staff: Perlihatkan pesan error
+            else Jadwal tersedia
+                API->>DB: Simpan data Kegiatan
+                API->>DB: Buat Pengingat untuk SEMUA user (source = "kegiatan")
+                API->>WS: broadcast PengingatNotification
+                WS-->>UI: Event notifikasi ke channel masing-masing user
+                API-->>UI: 201 / 200 Kegiatan tersimpan
+                UI-->>Staff: Daftar kegiatan diperbarui
+            end
         end
+    else Hapus Kegiatan
+        Staff->>UI: Klik Hapus & konfirmasi
+        UI->>API: DELETE /api/kegiatan/{id}
+        API->>DB: Hapus data Kegiatan
+        API-->>UI: 204 (tanpa konten)
+        UI-->>Staff: Daftar kegiatan diperbarui
     end
 ```
 
-### 2.6 OPD Konfirmasi Kehadiran Kegiatan
+### 2.7 OPD Konfirmasi Kehadiran Kegiatan — FR-08
 
 ```mermaid
 sequenceDiagram
@@ -331,15 +397,62 @@ sequenceDiagram
     API->>DB: Simpan / ubah kehadiran per OPD (kegiatan_id, user_id, status)
     API-->>UI: Konfirmasi tersimpan
     UI-->>OPD: Status kehadiran diperbarui
-
-    Note over UI: Staff / Asisten melihat rekap & daftar OPD<br/>(hadir_count, tidak_count, nama OPD)
 ```
 
-### 2.7 Notifikasi Pengingat Real-Time (Lonceng Notifikasi)
+### 2.8 Lihat Rekap & Daftar OPD — FR-09
 
 ```mermaid
 sequenceDiagram
-    actor Sender as User (Staff)
+    actor Staff
+    actor Asisten as Asisten Daerah
+    participant UI as Frontend (Vue)
+    participant API as API (Laravel)
+    participant DB as Database
+
+    Staff->>UI: Buka detail Kegiatan (rekap kehadiran)
+    Asisten->>UI: Buka detail Kegiatan (rekap kehadiran)
+    UI->>API: GET /api/kegiatan/{id}
+    API->>DB: Ambil kegiatan + hadir_count / tidak_count + daftar OPD yang mengonfirmasi
+    DB-->>API: Data rekap kehadiran
+    API-->>UI: JSON rekap & daftar OPD
+    UI-->>Staff: Rekap hadir/tidak & daftar OPD yang mengonfirmasi
+    UI-->>Asisten: Rekap hadir/tidak & daftar OPD yang mengonfirmasi
+```
+
+### 2.9 Kelola Pengingat Pribadi — FR-10
+
+```mermaid
+sequenceDiagram
+    actor User as User (Staff / Asisten Daerah / OPD)
+    participant UI as Frontend (Vue)
+    participant API as API (Laravel)
+    participant DB as Database
+
+    User->>UI: Buka halaman Pengingat
+    UI->>API: GET /api/pengingat
+    API->>DB: Ambil pengingat milik user (user_id)
+    DB-->>API: Data pengingat milik sendiri
+    API-->>UI: JSON pengingat milik sendiri
+
+    alt Buat / Ubah Pengingat
+        UI->>API: POST /api/pengingat | PUT /api/pengingat/{id}
+        API->>API: Validasi (judul, tanggal, prioritas)
+        API->>DB: Simpan / perbarui pengingat (source = "manual")
+        API-->>UI: 201 / 200
+        UI-->>User: Daftar pengingat diperbarui
+    else Hapus Pengingat
+        UI->>API: DELETE /api/pengingat/{id}
+        API->>DB: Hapus pengingat milik user
+        API-->>UI: 204 (tanpa konten)
+        UI-->>User: Daftar pengingat diperbarui
+    end
+```
+
+### 2.10 Notifikasi Pengingat Real-Time (Lonceng Notifikasi) — FR-11
+
+```mermaid
+sequenceDiagram
+    actor Sender as User (Staff / Asisten Daerah)
     actor Recipient as User Lain (Asisten / OPD / Staff)
     participant UI_A as Frontend Sender (Vue)
     participant API as API (Laravel)
@@ -347,7 +460,7 @@ sequenceDiagram
     participant WS as Reverb (WebSocket)
     participant UI_B as Frontend Recipient (Vue)
 
-    Sender->>UI_A: Tambah Surat / Kegiatan / Asisten serahkan/tolak Disposisi
+    Sender->>UI_A: Tambah Surat / Kegiatan / Serahkan-Tolak Disposisi
     UI_A->>API: POST /api/surat | POST /api/kegiatan | PATCH /api/disposisi/{id}
     API->>DB: Simpan data + buat Pengingat otomatis (source = "surat"/"kegiatan"/"disposisi")
     API->>WS: broadcast(PengingatNotification)
@@ -367,11 +480,42 @@ sequenceDiagram
     end
 ```
 
+### 2.11 Kelola Pengguna & Role — FR-12
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant UI as Frontend (Vue)
+    participant API as API (Laravel)
+    participant DB as Database
+
+    Admin->>UI: Buka halaman Pengguna
+    UI->>API: GET /api/users & GET /api/roles
+    API->>DB: Ambil daftar user + role
+    DB-->>API: Data user & role
+    API-->>UI: JSON user + role
+
+    alt Buat / Ubah User
+        UI->>API: POST /api/users | PUT /api/users/{id}
+        API->>API: Validasi (email unik, password kuat, role valid)
+        API->>DB: Simpan / perbarui user
+        API-->>UI: 201 / 200
+        UI-->>Admin: Daftar pengguna diperbarui
+    else Hapus User
+        UI->>API: DELETE /api/users/{id}
+        API->>DB: Hapus user (akun lain, akun sendiri ditolak)
+        API-->>UI: 204
+        UI-->>Admin: Daftar pengguna diperbarui
+    end
+```
+
 ---
 
 ## 3. Activity Diagram
 
-### 3.1 Alur Login
+Setiap use case pada Use Case Diagram dipetakan ke sebuah Activity Diagram (satu activity diagram per use case / kebutuhan fungsional).
+
+### 3.1 Alur Login & Logout — FR-01
 
 ```mermaid
 swimlane-beta LR
@@ -382,13 +526,16 @@ swimlane-beta LR
     D{Validasi form client-side}
     E[Tampilkan pesan error per field]
     H[Tampilkan pesan Email atau password salah]
-    K([Selesai])
+    L[Klik ikon Logout]
+    M([Selesai])
   end
   subgraph Sistem
     F[Terima POST /login]
     G{Kredensial valid?}
     I[Regenerasi sesi]
     J[Redirect ke Dashboard /]
+    K[Terima POST /logout]
+    N[Hapus sesi & redirect ke /login]
   end
   A --> B
   B --> C
@@ -401,10 +548,13 @@ swimlane-beta LR
   H --> C
   G -- Ya --> I
   I --> J
-  J --> K
+  J --> L
+  L --> K
+  K --> N
+  N --> M
 ```
 
-### 3.2 Alur Menampilkan Dashboard
+### 3.2 Alur Menampilkan Dashboard — FR-02
 
 ```mermaid
 swimlane-beta LR
@@ -436,41 +586,184 @@ swimlane-beta LR
   H --> I
 ```
 
-### 3.3 Alur Pengelolaan Surat → Disposisi
+### 3.3 Alur Kelola Surat — FR-03
 
 ```mermaid
 swimlane-beta LR
   subgraph Staff
     A([Mulai])
-    B[Input data Surat]
+    B{Buka menu Surat}
+    C[Isi form Surat]
+    D[Tampilkan pesan error validasi]
+    E[Ubah data Surat]
+    F[Klik Hapus Surat]
+    G[Konfirmasi hapus]
+    H([Selesai])
   end
   subgraph Sistem
-    C[Simpan Surat]
-    D[Auto: Buat Disposisi status Diterima]
-    E[Auto: Buat Pengingat ke Asisten Daerah]
-    H[Set status Disposisi: Diserahkan]
-    J[Set status Disposisi: Ditolak + Alasan]
+    I{Validasi form}
+    J[Simpan Surat]
+    K[Auto: Buat Disposisi status Diterima]
+    L[Auto: Buat Pengingat ke Asisten Daerah]
+    M[Auto: Broadcast notifikasi real-time]
+    N[Update data Surat]
+    O[Hapus data Surat]
   end
+  A --> B
+  B -- Buat --> C
+  C --> I
+  I -- Tidak valid --> D
+  D --> C
+  I -- Valid --> J
+  J --> K
+  K --> L
+  L --> M
+  M --> H
+  B -- Ubah --> E
+  E --> N
+  N --> H
+  B -- Hapus --> F
+  F --> G
+  G -- Ya --> O
+  O --> H
+```
+
+### 3.4 Alur Lihat Disposisi — FR-04
+
+```mermaid
+swimlane-beta LR
+  subgraph User [Staff / Asisten Daerah]
+    A([Mulai])
+    B[Buka menu Disposisi]
+    C[Pilih filter surat secara opsional]
+    D[Lihat daftar disposisi]
+    E[Lihat detail disposisi]
+    F([Selesai])
+  end
+  subgraph Sistem
+    G[Ambil data disposisi + relasi surat]
+    H{Kirim daftar & detail ke UI}
+  end
+  A --> B
+  B --> C
+  C --> G
+  G --> H
+  H --> D
+  D --> E
+  E --> F
+```
+
+### 3.5 Alur Menyerahkan Disposisi — FR-05
+
+```mermaid
+swimlane-beta LR
   subgraph Asisten [Asisten Daerah]
-    F[Tinjau Disposisi]
-    G{Disetujui?}
-    I[Isi alasan penolakan]
-    K([Selesai])
+    A([Mulai])
+    B[Buka data disposisi]
+    C[Klik Menyerahkan]
+    D[Isi Penerima & Dituju]
+    E[Tampilkan error: Penerima & Dituju wajib diisi]
+    F([Selesai])
+  end
+  subgraph Sistem
+    G{Validasi role asisten & Penerima/Dituju}
+    H[Set status Disposisi: Diserahkan]
+    I[Auto: Buat Pengingat ke seluruh Staff]
+    J[Auto: Broadcast notifikasi real-time]
   end
   A --> B
   B --> C
   C --> D
-  D --> E
-  E --> F
-  F --> G
-  G -- Ya --> H
-  G -- Tidak --> I
+  D --> G
+  G -- Tidak valid --> E
+  E --> D
+  G -- Valid --> H
+  H --> I
   I --> J
-  H --> K
-  J --> K
+  J --> F
 ```
 
-### 3.4 Alur Konfirmasi Kehadiran Kegiatan (OPD)
+### 3.6 Alur Menolak Disposisi — FR-06
+
+```mermaid
+swimlane-beta LR
+  subgraph Asisten [Asisten Daerah]
+    A([Mulai])
+    B[Buka data disposisi]
+    C[Klik Menolak]
+    D[Isi alasan penolakan]
+    E[Tampilkan error: alasan wajib diisi]
+    F([Selesai])
+  end
+  subgraph Sistem
+    G{Validasi role asisten & alasan}
+    H[Set status Disposisi: Ditolak + Alasan]
+    I[Auto: Buat Pengingat ke seluruh Staff]
+    J[Auto: Broadcast notifikasi real-time]
+  end
+  A --> B
+  B --> C
+  C --> D
+  D --> G
+  G -- Tidak valid --> E
+  E --> D
+  G -- Valid --> H
+  H --> I
+  I --> J
+  J --> F
+```
+
+### 3.7 Alur Kelola Kegiatan — FR-07
+
+```mermaid
+swimlane-beta LR
+  subgraph Staff
+    A([Mulai])
+    B{Buka menu Kegiatan}
+    C[Isi form Kegiatan]
+    D[Tampilkan pesan error validasi / Jadwal bentrok]
+    E[Ubah data Kegiatan]
+    F[Klik Hapus Kegiatan]
+    G[Konfirmasi hapus]
+    H([Selesai])
+  end
+  subgraph Sistem
+    I{Validasi form}
+    J{Auto cek bentrok jadwal}
+    K[Tolak pembuatan / perubahan kegiatan]
+    L[Simpan data Kegiatan]
+    M[Auto: Buat Pengingat ke semua role]
+    N[Auto: Broadcast notifikasi real-time]
+    O[Update data Kegiatan]
+    P[Hapus data Kegiatan]
+  end
+  A --> B
+  B -- Buat --> C
+  C --> I
+  I -- Tidak valid --> D
+  D --> C
+  I -- Valid --> J
+  J -- Bentrok pada tanggal dan jam yang sama --> K
+  K --> D
+  J -- Tersedia --> L
+  L --> M
+  M --> N
+  N --> H
+  B -- Ubah --> E
+  E --> I
+  I -- Tidak valid --> D
+  I -- Valid --> J
+  J -- Bentrok --> K
+  K --> D
+  J -- Tersedia --> O
+  O --> H
+  B -- Hapus --> F
+  F --> G
+  G -- Ya --> P
+  P --> H
+```
+
+### 3.8 Alur Konfirmasi Kehadiran Kegiatan (OPD) — FR-08
 
 ```mermaid
 swimlane-beta LR
@@ -482,11 +775,8 @@ swimlane-beta LR
     E[Kirim konfirmasi tidak]
   end
   subgraph Sistem
-    F[Simpan konfirmasi per OPD]
-  end
-  subgraph RoleLain [Role Lain]
-    G[Lihat rekap & daftar OPD]
-    H([Selesai])
+    F{Validasi status & role OPD}
+    G[Simpan / ubah konfirmasi per OPD]
   end
   A --> B
   B --> C
@@ -494,43 +784,76 @@ swimlane-beta LR
   C -- Tidak Hadir --> E
   D --> F
   E --> F
-  F --> G
-  G --> H
+  F -- Valid --> G
+  G --> A
 ```
 
-### 3.5 Alur Menambah Kegiatan dengan Auto Cek Bentrok Jadwal
+### 3.9 Alur Lihat Rekap & Daftar OPD — FR-09
 
 ```mermaid
 swimlane-beta LR
-  subgraph Staff
+  subgraph User [Staff / Asisten Daerah]
     A([Mulai])
-    B[Input data Kegiatan]
-    C[Tampilkan pesan: Jadwal bentrok]
-    D([Selesai])
+    B[Buka detail Kegiatan]
+    C[Lihat rekap hadir / tidak]
+    D[Lihat daftar OPD yang mengonfirmasi]
+    E([Selesai])
   end
   subgraph Sistem
-    E{Auto cek bentrok jadwal}
-    F[Tolak pembuatan kegiatan]
-    G[Simpan data Kegiatan]
-    H[Auto: Pengingat ke semua role]
+    F[Ambil kegiatan + hadir_count / tidak_count]
+    G[Ambil daftar OPD yang mengonfirmasi]
   end
   A --> B
-  B --> E
-  E -- Bentrok pada tanggal dan jam yang sama --> F
+  B --> F
   F --> C
-  E -- Tersedia --> G
-  G --> H
-  C --> D
-  H --> D
+  C --> G
+  G --> D
+  D --> E
 ```
 
-### 3.6 Alur Notifikasi Pengingat Real-Time
+### 3.10 Alur Kelola Pengingat Pribadi — FR-10
+
+```mermaid
+swimlane-beta LR
+  subgraph User [Staff / Asisten Daerah / OPD]
+    A([Mulai])
+    B{Buka menu Pengingat}
+    C[Isi form Pengingat]
+    D[Tampilkan pesan error validasi]
+    E[Ubah data Pengingat]
+    F[Klik Hapus Pengingat]
+    G[Konfirmasi hapus]
+    H([Selesai])
+  end
+  subgraph Sistem
+    I{Validasi form}
+    J[Simpan Pengingat dengan source manual]
+    K[Update data Pengingat]
+    L[Hapus Pengingat milik user]
+  end
+  A --> B
+  B -- Buat --> C
+  C --> I
+  I -- Tidak valid --> D
+  D --> C
+  I -- Valid --> J
+  J --> H
+  B -- Ubah --> E
+  E --> K
+  K --> H
+  B -- Hapus --> F
+  F --> G
+  G -- Ya --> L
+  L --> H
+```
+
+### 3.11 Alur Notifikasi Pengingat Real-Time — FR-11
 
 ```mermaid
 swimlane-beta LR
   subgraph User
     A([Mulai])
-    B[Tambah Surat / Kegiatan]
+    B[Tambah Surat / Kegiatan / Serahkan-Tolak Disposisi]
   end
   subgraph Sistem
     C[Simpan data]
@@ -563,6 +886,47 @@ swimlane-beta LR
   L --> M
 ```
 
+### 3.12 Alur Kelola Pengguna & Role — FR-12
+
+```mermaid
+swimlane-beta LR
+  subgraph Admin
+    A([Mulai])
+    B{Buka menu Pengguna}
+    C[Isi form Pengguna]
+    D[Tampilkan pesan error validasi]
+    E[Ubah data Pengguna]
+    F[Klik Hapus Pengguna]
+    G[Konfirmasi hapus]
+    H([Selesai])
+  end
+  subgraph Sistem
+    I{Validasi form & role}
+    J[Simpan Pengguna]
+    K[Update data Pengguna]
+    L{Hapus akun sendiri?}
+    M[Tolak: tidak dapat menghapus akun sendiri]
+    N[Hapus Pengguna lain]
+  end
+  A --> B
+  B -- Buat --> C
+  C --> I
+  I -- Tidak valid --> D
+  D --> C
+  I -- Valid --> J
+  J --> H
+  B -- Ubah --> E
+  E --> K
+  K --> H
+  B -- Hapus --> F
+  F --> G
+  G -- Ya --> L
+  L -- Ya --> M
+  M --> D
+  L -- Tidak --> N
+  N --> H
+```
+
 ---
 
 ## 4. Robustness Diagram
@@ -576,10 +940,10 @@ flowchart TD
     classDef entity fill:#dcfce7,stroke:#15803d,color:#14532d
 
     %% ==== Aktor ====
-    Admin([Admin])
-    Staff([Staff])
-    Asisten([Asisten Daerah])
-    OPD([OPD])
+    Admin([👤 Admin])
+    Staff([👤 Staff])
+    Asisten([👤 Asisten Daerah])
+    OPD([👤 OPD])
 
     %% ==== Boundary (Antarmuka Pengguna) ====
     subgraph Boundary [Boundary — Antarmuka Pengguna]
@@ -588,7 +952,7 @@ flowchart TD
         B_SURAT(Form & Daftar Surat):::boundary
         B_DISP(Daftar & Detail Disposisi):::boundary
         B_KEG(Form & Daftar Kegiatan):::boundary
-        B_KEH(Konfirmasi Kehadiran):::boundary
+        B_KEH(Konfirmasi Kehadiran & Rekap):::boundary
         B_NOTIF(Lonceng Notifikasi):::boundary
         B_PENG(Form Pengingat):::boundary
         B_USER(Form Pengguna):::boundary
@@ -616,7 +980,7 @@ flowchart TD
         E_NOTIF[(PengingatNotification)]:::entity
     end
 
-    %% ==== Alur: Login ====
+    %% ==== Alur: Login & Logout (FR-01) ====
     Admin --> B_LOGIN
     Staff --> B_LOGIN
     Asisten --> B_LOGIN
@@ -624,48 +988,63 @@ flowchart TD
     B_LOGIN --> C_AUTH
     C_AUTH --> E_USER
 
-    %% ==== Alur: Dashboard ====
+    %% ==== Alur: Dashboard (FR-02) ====
+    Admin --> B_DASH
     Staff --> B_DASH
+    Asisten --> B_DASH
+    OPD --> B_DASH
     B_DASH --> C_SURAT
+    B_DASH --> C_DISP
     B_DASH --> C_KEG
 
-    %% ==== Alur: Surat ====
+    %% ==== Alur: Kelola Surat (FR-03) ====
     Staff --> B_SURAT
     B_SURAT --> C_SURAT
     C_SURAT --> E_SURAT
     C_SURAT --> E_DISP
     C_SURAT --> E_PENG
 
-    %% ==== Alur: Disposisi ====
+    %% ==== Alur: Lihat Disposisi (FR-04) ====
     Staff --> B_DISP
     Asisten --> B_DISP
     B_DISP --> C_DISP
     C_DISP --> E_DISP
+
+    %% ==== Alur: Serahkan / Tolak Disposisi (FR-05 & FR-06) ====
+    Asisten --> B_DISP
+    C_DISP --> E_DISP
     C_DISP --> E_PENG
 
-    %% ==== Alur: Kegiatan & Kehadiran ====
+    %% ==== Alur: Kelola Kegiatan (FR-07) ====
     Staff --> B_KEG
-    Asisten --> B_KEG
-    OPD --> B_KEG
     B_KEG --> C_KEG
     C_KEG --> E_KEG
-    C_KEG --> E_KEH
+    C_KEG --> E_PENG
+
+    %% ==== Alur: Konfirmasi Kehadiran (FR-08) ====
     OPD --> B_KEH
     B_KEH --> C_KEG
+    C_KEG --> E_KEH
 
-    %% ==== Alur: Pengingat & Notifikasi ====
+    %% ==== Alur: Lihat Rekap & Daftar OPD (FR-09) ====
+    Staff --> B_KEH
+    Asisten --> B_KEH
+
+    %% ==== Alur: Kelola Pengingat Pribadi (FR-10) ====
     Staff --> B_PENG
     Asisten --> B_PENG
     OPD --> B_PENG
     B_PENG --> C_PENG
     C_PENG --> E_PENG
+
+    %% ==== Alur: Notifikasi Pengingat Real-Time (FR-11) ====
     Staff --> B_NOTIF
     Asisten --> B_NOTIF
     OPD --> B_NOTIF
     B_NOTIF --> C_PENG
     C_PENG --> E_NOTIF
 
-    %% ==== Alur: Pengguna ====
+    %% ==== Alur: Kelola Pengguna & Role (FR-12) ====
     Admin --> B_USER
     B_USER --> C_USER
     C_USER --> E_USER
@@ -690,8 +1069,10 @@ classDiagram
         +int id
         +string name
         +string email
+        +datetime email_verified_at
         +int role_id
         +string password
+        +string remember_token
         +role_slug()
     }
 
@@ -774,6 +1155,8 @@ classDiagram
     PengingatNotification "1" --> "1" Pengingat : pengingat
 ```
 
+> Catatan: `PengingatNotification` adalah **event broadcast** (Laravel Reverb + Laravel Echo) yang dikirim saat pengingat otomatis dibuat untuk seorang pengguna. Kelas ini **bukan tabel** pada database sehingga tidak ditampilkan pada Rancangan Database.
+
 ### Nilai Enum / Status
 
 | Atribut | Nilai |
@@ -784,18 +1167,118 @@ classDiagram
 | `KegiatanKehadiran.status` | `hadir`, `tidak` |
 | `Pengingat.prioritas` | `rendah`, `sedang`, `tinggi` |
 | `Pengingat.status` | `pending`, `selesai` |
-| `Pengingat.source` | `manual`, `surat`, `kegiatan` |
+| `Pengingat.source` | `manual`, `surat`, `kegiatan`, `disposisi` |
 | `Pengingat.read_at` | `null` (belum dibaca), timestamp (dibaca) |
 
 ---
 
-## 6. Skenario Pengujian API — Response Berhasil / Gagal
+## 6. Rancangan Database
+
+Rancangan database berikut menggambarkan struktur tabel fisik pada database SQLite aplikasi, disusun dari skema migrasi (Laravel Migration). Relasi antar tabel mengikuti kunci asing (foreign key) yang didefinisikan pada migrasi.
+
+```mermaid
+erDiagram
+    ROLES ||--o{ USERS : "role_id"
+    USERS ||--o{ PENGINGATS : "user_id"
+    SURAT ||--o{ DISPOSISI : "surat_id"
+    KEGIATANS ||--o{ KEGIATAN_KEHADIRANS : "kegiatan_id"
+    USERS ||--o{ KEGIATAN_KEHADIRANS : "user_id"
+
+    ROLES {
+        bigint id PK
+        string name
+        string slug UK
+        timestamp created_at
+        timestamp updated_at
+    }
+    USERS {
+        bigint id PK
+        string name
+        string email UK
+        timestamp email_verified_at
+        string password
+        bigint role_id FK
+        string remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+    SURAT {
+        bigint id PK
+        datetime tanggal
+        string nomor_surat
+        string asal_surat
+        string perihal
+        string kepada
+        datetime tanggal_pelaksanaan
+        string tempat_pelaksanaan
+        string pembawa_surat
+        string tandatangan
+        timestamp created_at
+        timestamp updated_at
+    }
+    DISPOSISI {
+        bigint id PK
+        bigint surat_id FK
+        datetime tanggal
+        string nomor_surat
+        string asal_surat
+        string perihal
+        string kepada
+        string pembawa_surat
+        string tandatangan_penerima
+        string tandatangan_dituju
+        string keterangan
+        text alasan
+        timestamp created_at
+        timestamp updated_at
+    }
+    KEGIATANS {
+        bigint id PK
+        string nama_kegiatan
+        string tempat_kegiatan
+        datetime tanggal_kegiatan
+        text uraian_kegiatan
+        string realisasi_pelaksanaan
+        text keterangan
+        string status
+        string nama_penyusun
+        timestamp created_at
+        timestamp updated_at
+    }
+    KEGIATAN_KEHADIRANS {
+        bigint id PK
+        bigint kegiatan_id FK
+        bigint user_id FK
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+    PENGINGATS {
+        bigint id PK
+        bigint user_id FK
+        string judul
+        text deskripsi
+        datetime tanggal_pengingat
+        string prioritas
+        string status
+        string source
+        timestamp read_at
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+> Catatan: tabel `cache`, `jobs`, `password_reset_tokens`, dan `sessions` merupakan tabel bawaan framework Laravel dan tidak termasuk domain bisnis sistem, sehingga tidak digambarkan pada Rancangan Database.
+
+---
+
+## 7. Skenario Pengujian API — Response Berhasil / Gagal
 
 Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **response HTTP** yang dikembalikan sistem, baik pada kondisi **berhasil** maupun **gagal**. Endpoint API mengembalikan format JSON; endpoint web (login/logout) mengembalikan redirect.
 
 > **Keterangan status:** `200` sukses dengan data, `201` sukses buat data baru, `204` sukses hapus tanpa konten, `302` redirect, `401` belum login, `403` role tidak berhak, `404` data tidak ditemukan, `422` validasi gagal.
 
-### 6.1 Login & Dashboard
+### 7.1 Login & Dashboard
 
 | ID | Skenario | Kondisi | Request | Response | Hasil |
 |----|----------|---------|---------|----------|-------|
@@ -809,7 +1292,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | A-08 | Akses dashboard `/` | Guest | `GET /` | `302` | **Gagal** — redirect ke `/login` |
 | A-09 | Akses dashboard `/` | User terautentikasi | `GET /` | `200` | **Berhasil** — dashboard tampil |
 
-### 6.2 Kelola Surat
+### 7.2 Kelola Surat
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -823,7 +1306,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | S-08 | Ubah surat | Field tidak valid | `PUT /api/surat/{id}` | `422` | **Gagal** — error validasi |
 | S-09 | Hapus surat | Data tersedia | `DELETE /api/surat/{id}` | `204` | **Berhasil** — data terhapus (tanpa konten) |
 
-### 6.3 Kelola Disposisi (Lihat / Serahkan / Tolak)
+### 7.3 Kelola Disposisi (Lihat / Serahkan / Tolak)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -841,7 +1324,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | D-11 | Asisten memakai field staff | `keterangan = diterima` | `PUT /api/disposisi/{id}` | `422` | **Gagal** — tidak diizinkan untuk role asisten |
 | D-12 | Role lain (OPD) ubah | Bukan asisten | `PUT /api/disposisi/{id}` | `403` | **Gagal** — tidak memiliki akses |
 
-### 6.4 Kelola Kegiatan (Buat / Ubah / Hapus) + Auto Cek Bentrok Jadwal
+### 7.4 Kelola Kegiatan (Buat / Ubah / Hapus) + Auto Cek Bentrok Jadwal
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -859,7 +1342,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | K-12 | **Hapus** kegiatan | Staff | `DELETE /api/kegiatan/{id}` | `204` | **Berhasil** — data terhapus |
 | K-13 | **Hapus** kegiatan | Role bukan staff | `DELETE /api/kegiatan/{id}` | `403` | **Gagal** — tidak memiliki akses |
 
-### 6.5 Konfirmasi Kehadiran (OPD)
+### 7.5 Konfirmasi Kehadiran (OPD)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -870,7 +1353,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | H-05 | Konfirmasi | Role bukan OPD (staff) | `POST /api/kegiatan/{id}/kehadiran` | `403` | **Gagal** — tidak memiliki akses |
 | H-06 | Konfirmasi | Kegiatan tidak ditemukan | `POST /api/kegiatan/999/kehadiran` | `404` | **Gagal** — kegiatan tidak ada |
 
-### 6.6 Kelola Pengingat Pribadi (Staff / Asisten Daerah / OPD)
+### 7.6 Kelola Pengingat Pribadi (Staff / Asisten Daerah / OPD)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -886,7 +1369,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | P-10 | Hapus pengingat | Milik user lain | `DELETE /api/pengingat/{id}` | `404` | **Gagal** — diperlakukan sebagai tidak ditemukan |
 | P-11 | Akses pengingat | Role Admin | `GET /api/pengingat` | `403` | **Gagal** — admin tidak diperbolehkan |
 
-### 6.8 Notifikasi Pengingat Real-Time
+### 7.8 Notifikasi Pengingat Real-Time
 
 | ID | Skenario Uji | Kondisi | Endpoint | Status | Hasil |
 |----|--------------|---------|----------|--------|-------|
@@ -896,7 +1379,7 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 | N-04 | Tandai semua notifikasi dibaca | Terautentikasi | `POST /api/pengingat/read-all` | `200` | **Berhasil** — semua `read_at` terisi |
 | N-05 | Akses notifikasi | Role Admin | `GET /api/pengingat/notifications` | `403` | **Gagal** — admin tidak diperbolehkan |
 
-### 6.7 Kelola Pengguna & Role (Admin)
+### 7.7 Kelola Pengguna & Role (Admin)
 
 | ID | Skenario | Kondisi / Data | Request | Response | Hasil |
 |----|----------|-----------------|---------|----------|-------|
@@ -916,13 +1399,13 @@ Tabel berikut memetakan setiap use case ke skenario pengujian beserta kode **res
 
 ---
 
-## 7. Skenario User Acceptance Test (UAT)
+## 8. Skenario User Acceptance Test (UAT)
 
 Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang dijalankan oleh pengguna akhir untuk memvalidasi fungsionalitas sistem sesuai kebutuhan. Setiap skenario memuat langkah pengujian dan hasil yang diharapkan; kolom **Hasil Aktual** dan **Status** diisi oleh penguji (pengguna) selama uji penerimaan.
 
 > **Skala Status:** `Lulus` (sesuai harapan) / `Gagal` (tidak sesuai harapan).
 
-### 7.1 Login & Dashboard
+### 8.1 Login & Dashboard
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -938,7 +1421,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-10 | Statistik kegiatan akurat | Bandingkan angka Total/Dilaksanakan/Tidak Dilaksanakan dengan data | Jumlah sesuai data di halaman Kegiatan | | |
 | UAT-11 | Akses halaman tanpa login | Buka `/` tanpa autentikasi | Redirect ke `/login` | | |
 
-### 7.2 Kelola Surat (Staff)
+### 8.2 Kelola Surat (Staff)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -949,7 +1432,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-16 | Hapus surat | Klik **Hapus**, konfirmasi pada dialog | Data terhapus, toast **berhasil** | | |
 | UAT-17 | Hak akses surat | Login sebagai role **selain Staff**, buka menu Surat | Menu Surat tidak tersedia | | |
 
-### 7.3 Kelola Disposisi (Staff / Asisten Daerah)
+### 8.3 Kelola Disposisi (Staff / Asisten Daerah)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -962,7 +1445,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-23 | Tidak ada aksi hapus disposisi | Staff/Asisten mencari tombol **Hapus** pada disposisi | Aksi hapus tidak tersedia untuk semua role | | |
 | UAT-24 | Asisten menyerahkan/menolak tanpa kewenangan lain | Asisten mencoba mengubah field data surat lain | Hanya status serahkan/tolak (dan Penerima/Dituju/Alasan) yang dapat diubah | | |
 
-### 7.4 Kelola Kegiatan & Konfirmasi Kehadiran
+### 8.4 Kelola Kegiatan & Konfirmasi Kehadiran
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -976,7 +1459,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-32 | Lihat daftar OPD | Staff/Asisten buka **Daftar OPD** pada kegiatan | Daftar OPD yang mengonfirmasi hadir/tidak tampil | | |
 | UAT-33 | Role non-staff menambah kegiatan | OPD/Asisten mencoba tambah kegiatan | Tombol tambah/edit/hapus tidak tersedia | | |
 
-### 7.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)
+### 8.5 Kelola Pengingat (Staff / Asisten Daerah / OPD)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -986,7 +1469,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-37 | Hapus pengingat | Klik **Hapus**, konfirmasi | Data terhapus | | |
 | UAT-38 | Pengingat milik user lain | Buka/ubah/hapus pengingat milik user lain | Diperlakukan sebagai tidak ditemukan (ditolak) | | |
 
-### 7.6 Kelola Pengguna (Admin)
+### 8.6 Kelola Pengguna (Admin)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -999,7 +1482,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-45 | Hapus akun sendiri | Coba hapus akun yang sedang login | Ditolak, pesan tidak dapat menghapus akun sendiri | | |
 | UAT-46 | Hak akses pengguna | Login sebagai role selain Admin, buka menu **Pengguna** | Menu Pengguna tidak tersedia | | |
 
-### 7.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)
+### 8.7 Notifikasi Pengingat Real-Time (Staff / Asisten Daerah / OPD)
 
 | ID | Skenario Uji | Langkah / Input | Hasil yang Diharapkan | Hasil Aktual | Status |
 |----|--------------|-----------------|----------------------|--------------|--------|
@@ -1013,7 +1496,7 @@ Bagian ini berisi skenario **User Acceptance Test (UAT)** berbasis skenario yang
 | UAT-53 | Tandai semua dibaca | Klik **Tandai semua dibaca** pada dropdown | Semua notifikasi berstatus dibaca, badge hilang, toast **berhasil** | | |
 | UAT-54 | Hak akses notifikasi | Login sebagai **Admin**, lihat header | Lonceng notifikasi tidak tersedia | | |
 
-## 8. Blackbox Testing
+## 9. Blackbox Testing
 
 Pengujian blackbox dilakukan terhadap **fungsi sistem** tanpa memperhatikan struktur internal kode. Setiap skenario memetakan **Kebutuhan Fungsional (FR)** ke **Skenario Uji**, **Langkah / Input**, dan **Hasil yang Diharapkan**; kolom **Hasil Aktual** dan **Status** diisi oleh penguji.
 
