@@ -51,10 +51,10 @@ Dokumen ini berisi diagram UML (Use Case, Sequence, Activity, Robustness, dan Cl
 ```mermaid
 flowchart TD
     %% ==== Aktor ====
-    Admin([👤 Admin])
-    Staff([👤 Staff])
-    Asisten([👤 Asisten Daerah])
-    OPD([👤 OPD])
+    Admin["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>Admin"]
+    Staff["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>Staff"]
+    Asisten["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>Asisten"]
+    OPD["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>OPD"]
 
     subgraph Umum
         UC_LOGIN[Login]
@@ -154,10 +154,10 @@ Use case berikut memfokuskan pada dua fungsionalitas yang diakses oleh **semua r
 ```mermaid
 flowchart TD
     %% ==== Aktor ====
-    Admin([👤 Admin])
-    Staff([👤 Staff])
-    Asisten([👤 Asisten Daerah])
-    OPD([👤 OPD])
+    Admin["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>Admin"]
+    Staff["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>Staff"]
+    Asisten["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>Asisten"]
+    OPD["<svg xmlns='http://www.w3.org/2000/svg' width='20' height='48' viewBox='0 0 20 48'><circle cx='10' cy='8' r='7' fill='#ECECFF' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='15' x2='10' y2='30' stroke='#9370DB' stroke-width='1.5'/><line x1='5' y1='22' x2='15' y2='22' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='4' y2='42' stroke='#9370DB' stroke-width='1.5'/><line x1='10' y1='30' x2='16' y2='42' stroke='#9370DB' stroke-width='1.5'/></svg><br/>OPD"]
 
     subgraph Autentikasi
         UC_LOGIN[Login]
@@ -939,12 +939,6 @@ flowchart TD
     classDef controller fill:#fef3c7,stroke:#b45309,color:#78350f
     classDef entity fill:#dcfce7,stroke:#15803d,color:#14532d
 
-    %% ==== Aktor ====
-    Admin([👤 Admin])
-    Staff([👤 Staff])
-    Asisten([👤 Asisten Daerah])
-    OPD([👤 OPD])
-
     %% ==== Boundary (Antarmuka Pengguna) ====
     subgraph Boundary [Boundary — Antarmuka Pengguna]
         B_LOGIN(Form Login):::boundary
@@ -981,71 +975,46 @@ flowchart TD
     end
 
     %% ==== Alur: Login & Logout (FR-01) ====
-    Admin --> B_LOGIN
-    Staff --> B_LOGIN
-    Asisten --> B_LOGIN
-    OPD --> B_LOGIN
     B_LOGIN --> C_AUTH
     C_AUTH --> E_USER
 
     %% ==== Alur: Dashboard (FR-02) ====
-    Admin --> B_DASH
-    Staff --> B_DASH
-    Asisten --> B_DASH
-    OPD --> B_DASH
     B_DASH --> C_SURAT
     B_DASH --> C_DISP
     B_DASH --> C_KEG
 
     %% ==== Alur: Kelola Surat (FR-03) ====
-    Staff --> B_SURAT
     B_SURAT --> C_SURAT
     C_SURAT --> E_SURAT
     C_SURAT --> E_DISP
     C_SURAT --> E_PENG
 
     %% ==== Alur: Lihat Disposisi (FR-04) ====
-    Staff --> B_DISP
-    Asisten --> B_DISP
     B_DISP --> C_DISP
     C_DISP --> E_DISP
 
     %% ==== Alur: Serahkan / Tolak Disposisi (FR-05 & FR-06) ====
-    Asisten --> B_DISP
     C_DISP --> E_DISP
     C_DISP --> E_PENG
 
     %% ==== Alur: Kelola Kegiatan (FR-07) ====
-    Staff --> B_KEG
     B_KEG --> C_KEG
     C_KEG --> E_KEG
     C_KEG --> E_PENG
 
-    %% ==== Alur: Konfirmasi Kehadiran (FR-08) ====
-    OPD --> B_KEH
+    %% ==== Alur: Konfirmasi Kehadiran & Lihat Rekap (FR-08 & FR-09) ====
     B_KEH --> C_KEG
     C_KEG --> E_KEH
 
-    %% ==== Alur: Lihat Rekap & Daftar OPD (FR-09) ====
-    Staff --> B_KEH
-    Asisten --> B_KEH
-
     %% ==== Alur: Kelola Pengingat Pribadi (FR-10) ====
-    Staff --> B_PENG
-    Asisten --> B_PENG
-    OPD --> B_PENG
     B_PENG --> C_PENG
     C_PENG --> E_PENG
 
     %% ==== Alur: Notifikasi Pengingat Real-Time (FR-11) ====
-    Staff --> B_NOTIF
-    Asisten --> B_NOTIF
-    OPD --> B_NOTIF
     B_NOTIF --> C_PENG
     C_PENG --> E_NOTIF
 
     %% ==== Alur: Kelola Pengguna & Role (FR-12) ====
-    Admin --> B_USER
     B_USER --> C_USER
     C_USER --> E_USER
     C_USER --> E_ROLE

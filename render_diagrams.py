@@ -15,13 +15,24 @@ import base64
 import json
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 MD_PATH = BASE / "laravel-vue-mvc/docs/UML_Documentation.md"
 OUT_DIR = BASE / "laravel-vue-mvc/docs/diagrams"
-THEME = "default"
+THEME = {
+    "theme": "default",
+    "fontSize": 12,
+    "themeVariables": {"fontSize": "12px"},
+    "themeCSS": (
+        "g.classGroup text,.classLabel .label,.edgeTerminals,"
+        ".edgeLabel .label,.flowchartTitleText,.classTitleText"
+        "{font-size:12px !important;}"
+    ),
+}
 
 BLOCK_RE = re.compile(r"```(mermaid)\s*\n(.*?)```", re.S)
 
@@ -38,17 +49,25 @@ def safe_ascii(value, limit=50):
     return value[:limit].encode("ascii", "replace").decode("ascii")
 
 
-def fetch_png(code: str, out_file: Path) -> bool:
-    payload = json.dumps({"code": code, "mermaid": {"theme": THEME}}).encode("utf-8")
+def fetch_png(code: str, out_file: Path, retries: int = 3) -> bool:
+    payload = json.dumps({"code": code, "mermaid": THEME}).encode("utf-8")
     encoded = base64.urlsafe_b64encode(payload).decode("ascii")
     url = f"https://mermaid.ink/img/{encoded}?type=png"
-    req = urllib.request.Request(url, headers={"User-Agent": "opencode-uml-docs"})
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        data = resp.read()
-    if not data:
-        return False
-    out_file.write_bytes(data)
-    return True
+    for attempt in range(1, retries + 1):
+        req = urllib.request.Request(url, headers={"User-Agent": "opencode-uml-docs"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = resp.read()
+        except urllib.error.HTTPError as exc:
+            if attempt < retries and exc.code in (429, 500, 502, 503, 504):
+                time.sleep(3 * attempt)
+                continue
+            raise
+        if not data:
+            return False
+        out_file.write_bytes(data)
+        return True
+    return False
 
 
 def main():
